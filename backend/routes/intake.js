@@ -496,4 +496,95 @@ router.get('/dashboard/stats', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/generate-poster
+ * Dynamically generates a PDF poster for the most recent missing person report.
+ */
+router.get('/generate-poster', async (req, res) => {
+  try {
+    const { data: reports, error: reportErr } = await supabase
+      .from('missing_reports')
+      .select('id, reporter_type, contact_info, extracted_data, image_url, created_at, status')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (reportErr) throw reportErr;
+
+    const report = reports && reports[0] ? reports[0] : null;
+    const pdfBuffer = generatePosterPDF(report);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="missing-person-poster.pdf"');
+    return res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Poster generation error:', error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+function generatePosterPDF(report) {
+  const ext = report ? report.extracted_data : {};
+  const age = ext.age_approx || ext.age_estimate || ext.age || 'Unknown';
+  const gender = ext.gender || 'Unknown';
+  const clothing = ext.clothing || 'Unknown';
+  const location = ext.location_missing || ext.location_found || 'Unknown';
+  const marks = ext.physical_marks || ext.injuries || 'None';
+
+  const streamContent = `BT
+/F1 28 Tf
+70 750 Td
+(MISSING PERSON ALERT) Tj
+/F1 14 Tf
+0 -50 Td
+(Approximate Age: ${age}) Tj
+0 -25 Td
+(Gender: ${gender}) Tj
+0 -25 Td
+(Last Known Location: ${location}) Tj
+0 -25 Td
+(Clothing Details: ${clothing}) Tj
+0 -25 Td
+(Identifying Marks: ${marks}) Tj
+0 -50 Td
+(CONTACT IDentyBridge Support or Local Authorities Immediately.) Tj
+ET`;
+
+  const streamLength = Buffer.byteLength(streamContent, 'utf-8');
+
+  const pdfContent = `%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length ${streamLength} >>
+stream
+${streamContent}
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000244 00000 n 
+0000000414 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+503
+%%EOF`;
+
+  return Buffer.from(pdfContent, 'utf-8');
+}
+
 module.exports = router;
