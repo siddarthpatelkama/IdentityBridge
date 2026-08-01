@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import {
   AlertCircle,
   ArrowRight,
@@ -9,10 +10,37 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-
+import { supabase } from "@/lib/supabaseClient";
 import MatchCard from "../components/MatchCard";
 
+
 export default function ReportMissing() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      localStorage.removeItem("identybridge_role");
+      localStorage.removeItem("identybridge_fullname");
+      setIsAuthenticated(false);
+      router.push("/");
+    }
+  };
+
   const [formData, setFormData] = useState({
     age_approx: "",
     gender: "",
@@ -115,8 +143,8 @@ export default function ReportMissing() {
       if (!response.ok) {
         throw new Error(
           data?.message ||
-            data?.error ||
-            "We could not process the report right now."
+          data?.error ||
+          "We could not process the report right now."
         );
       }
 
@@ -134,7 +162,7 @@ export default function ReportMissing() {
 
       setError(
         err?.message ||
-          "Something went wrong while submitting the report. Please try again."
+        "Something went wrong while submitting the report. Please try again."
       );
 
       setStatus("error");
@@ -190,7 +218,7 @@ export default function ReportMissing() {
       setPosterStatus("error");
       setError(
         err?.message ||
-          "We could not generate the poster right now. Please try again."
+        "We could not generate the poster right now. Please try again."
       );
     }
   };
@@ -225,9 +253,19 @@ export default function ReportMissing() {
             </div>
           </div>
 
-          <div className="hidden items-center gap-2 text-xs font-medium text-white/70 sm:flex">
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-            Secure Public Intake
+          <div className="flex items-center gap-3 text-xs font-medium text-white/70">
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="rounded-md border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-white/15 cursor-pointer"
+              >
+                Logout
+              </button>
+            )}
+            <div className="hidden items-center gap-2 sm:flex">
+              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              Secure Public Intake
+            </div>
           </div>
         </div>
       </header>

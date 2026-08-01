@@ -1,11 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import { Shield, Sparkles, FileText, Search, ShieldAlert, CheckCircle2, Info } from "lucide-react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import { Shield, Sparkles, FileText, Search, ShieldAlert, CheckCircle2, Info, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import MatchCard from "@/components/MatchCard";
 
 export default function IntakeDashboard() {
-    // Page states
+    const router = useRouter();
+    const [loading, setLoading] = useState(true);
+    const [role, setRole] = useState(null);
+
+    // Form states
     const [formData, setFormData] = useState({
         age_estimate: "",
         gender: "",
@@ -19,6 +26,76 @@ export default function IntakeDashboard() {
     const [matchData, setMatchData] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
     const [verifiedList, setVerifiedList] = useState({}); // Tracking verified matches locally by ID
+
+    useEffect(() => {
+        if (!supabase) {
+            setLoading(false);
+            return;
+        }
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                router.push("/signin?redirect=/intake");
+            } else {
+                const storedRole = localStorage.getItem("identybridge_role") || "Public User";
+                setRole(storedRole);
+                setLoading(false);
+            }
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!session) {
+                router.push("/signin?redirect=/intake");
+            } else {
+                const storedRole = localStorage.getItem("identybridge_role") || "Public User";
+                setRole(storedRole);
+                setLoading(false);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#F4F7FA] flex items-center justify-center font-sans">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#14B8A6]" />
+                    <p className="text-sm font-semibold text-[#526274]">Verifying credentials...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (role === "Public User") {
+        return (
+            <main className="min-h-screen bg-gradient-to-br from-[#081B32] via-[#0B1F3A] to-[#123B66] flex flex-col justify-center py-12 px-6 lg:px-8 relative font-sans overflow-hidden">
+                <div className="absolute top-1/4 left-1/4 h-[350px] w-[350px] rounded-full bg-[#14B8A6]/10 blur-[120px] pointer-events-none" />
+                <div className="absolute bottom-1/4 right-1/4 h-[350px] w-[350px] rounded-full bg-[#1D5D8F]/15 blur-[120px] pointer-events-none" />
+
+                <div className="sm:mx-auto sm:w-full sm:max-w-md z-10 text-center">
+                    <div className="bg-white/95 backdrop-blur-md py-8 px-6 shadow-2xl border border-white/10 rounded-2xl sm:px-10">
+                        <div className="flex justify-center mb-4 text-[#EA4335]">
+                            <ShieldAlert className="w-14 h-14" />
+                        </div>
+                        <h2 className="text-xl font-bold text-[#0B1F3A]">Restricted Access</h2>
+                        <p className="mt-3 text-sm text-[#526274] leading-relaxed font-semibold">
+                            Emergency Intake is available only to authorized Police and Hospital personnel.
+                        </p>
+                        <div className="mt-6">
+                            <Link
+                                href="/"
+                                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md border border-[#0B1F3A] bg-[#123B66] text-white hover:bg-[#0B1F3A] text-sm font-bold shadow-sm transition cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F766E]"
+                            >
+                                Return to Home
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -127,7 +204,20 @@ export default function IntakeDashboard() {
                             Police & Hospital Intake
                         </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={async () => {
+                                if (supabase) {
+                                    await supabase.auth.signOut();
+                                    localStorage.removeItem("identybridge_role");
+                                    localStorage.removeItem("identybridge_fullname");
+                                    router.push("/");
+                                }
+                            }}
+                            className="rounded-md border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-white/15 cursor-pointer"
+                        >
+                            Logout
+                        </button>
                         <span className="badge-secure bg-[#123B66] text-[#14B8A6] border border-[#1D5D8F] flex items-center gap-1.5 px-3 py-1 font-semibold text-xs rounded-full">
                             <Shield className="w-3.5 h-3.5 fill-[#14B8A6]/10" aria-hidden="true" />
                             Secure Intake
@@ -285,8 +375,8 @@ export default function IntakeDashboard() {
                                         type="submit"
                                         disabled={submitting}
                                         className={`w-full py-2.5 px-4 rounded-sm font-semibold text-sm transition-all inline-flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-teal ${submitting
-                                                ? "bg-bg-subtle text-text-muted border border-bg-subtle cursor-not-allowed"
-                                                : "btn-primary cursor-pointer"
+                                            ? "bg-bg-subtle text-text-muted border border-bg-subtle cursor-not-allowed"
+                                            : "btn-primary cursor-pointer"
                                             }`}
                                     >
                                         <Search className="w-4 h-4" aria-hidden="true" />

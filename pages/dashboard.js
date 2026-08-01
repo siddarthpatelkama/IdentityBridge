@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
+import { supabase } from "@/lib/supabaseClient";
 import {
   Activity,
   AlertCircle,
@@ -181,6 +183,31 @@ export default function Dashboard() {
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      localStorage.removeItem("identybridge_role");
+      localStorage.removeItem("identybridge_fullname");
+      setIsAuthenticated(false);
+      router.push("/");
+    }
+  };
 
   const fetchDashboardData = async () => {
     setStatus("loading");
@@ -205,8 +232,8 @@ export default function Dashboard() {
       if (!response.ok) {
         throw new Error(
           responseData?.message ||
-            responseData?.error ||
-            "Unable to load dashboard data."
+          responseData?.error ||
+          "Unable to load dashboard data."
         );
       }
 
@@ -218,7 +245,7 @@ export default function Dashboard() {
 
       setError(
         err?.message ||
-          "Unable to connect to the dashboard service."
+        "Unable to connect to the dashboard service."
       );
 
       setStatus("error");
@@ -291,6 +318,16 @@ export default function Dashboard() {
                 System Monitoring
               </div>
 
+              {isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-md border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-white/15 cursor-pointer"
+                >
+                  Logout
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={fetchDashboardData}
@@ -299,9 +336,8 @@ export default function Dashboard() {
                 aria-label="Refresh dashboard data"
               >
                 <RefreshCw
-                  className={`h-4 w-4 ${
-                    status === "loading" ? "animate-spin" : ""
-                  }`}
+                  className={`h-4 w-4 ${status === "loading" ? "animate-spin" : ""
+                    }`}
                   aria-hidden="true"
                 />
                 Refresh
