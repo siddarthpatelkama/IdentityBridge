@@ -1,0 +1,20 @@
+{
+  "name": "identitybridge-backend",
+  "version": "1.0.0",
+  "description": "IdentyBridge - Backend API and AI matching engine for road accident victims and missing persons",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.4",
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.51.0",
+    "twilio": "^4.23.0"
+  }
+}
