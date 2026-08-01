@@ -587,4 +587,13 @@ startxref
   return Buffer.from(pdfContent, 'utf-8');
 }
 
+/**
+ * GET /api/awake
+ * Simple keep-alive endpoint to prevent Render service from sleeping.
+ * Responds to Uptime Robot with "Yes, I am awake!"
+ */
+router.get('/awake', (req, res) => {
+  return res.status(200).send('Yes, I am awake!');
+});
+
 module.exports = router;
