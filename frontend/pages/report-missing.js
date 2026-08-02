@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -40,6 +40,23 @@ export default function ReportMissing() {
   const [error, setError] = useState("");
   const [posterStatus, setPosterStatus] = useState("idle");
   const [photoFile, setPhotoFile] = useState(null);
+
+  // Persist form state across refreshes
+  useEffect(() => {
+    const saved = localStorage.getItem("identybridge_report_form");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setFormData(prev => ({ ...prev, ...parsed }));
+      } catch (e) {
+        console.error("Error loading cached report form:", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("identybridge_report_form", JSON.stringify(formData));
+  }, [formData]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -138,6 +155,8 @@ export default function ReportMissing() {
             "We could not process the report right now."
         );
       }
+
+      localStorage.removeItem("identybridge_report_form");
 
       const returnedMatches = extractMatches(data);
 

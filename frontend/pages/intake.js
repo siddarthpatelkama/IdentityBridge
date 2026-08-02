@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { Shield, Sparkles, FileText, Search, ShieldAlert, CheckCircle2, Info, Loader2 } from "lucide-react";
@@ -34,6 +34,23 @@ export default function IntakeDashboard() {
     const [errorMessage, setErrorMessage] = useState(null);
     const [verifiedList, setVerifiedList] = useState({}); // Tracking verified matches locally by ID
     const [photoFile, setPhotoFile] = useState(null);
+
+    // Persist form state across refreshes
+    useEffect(() => {
+        const saved = localStorage.getItem("identybridge_intake_form");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                setFormData(prev => ({ ...prev, ...parsed }));
+            } catch (e) {
+                console.error("Error loading cached intake form:", e);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("identybridge_intake_form", JSON.stringify(formData));
+    }, [formData]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -99,6 +116,8 @@ export default function IntakeDashboard() {
             if (!response.ok) {
                 throw new Error(`Intake submission failed: ${response.status} ${response.statusText}`);
             }
+
+            localStorage.removeItem("identybridge_intake_form");
 
             let data;
             try {
