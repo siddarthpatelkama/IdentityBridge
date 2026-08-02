@@ -29,7 +29,7 @@ VALUES
       "last_seen_time": "2026-08-01T18:30:00Z",
       "physical_marks": "Small black mole on left cheek, steel watch on right wrist"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/75.jpg',
     'active', '2026-08-01T18:30:00Z'
   ),
 
@@ -46,7 +46,7 @@ VALUES
       "last_seen_time": "2026-08-01T10:00:00Z",
       "physical_marks": "Speaks only Telugu, green-and-gold bangles, surgical scar on right knee"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/65.jpg',
     'active', '2026-08-01T10:00:00Z'
   ),
 
@@ -63,7 +63,7 @@ VALUES
       "last_seen_time": "2026-07-31T20:00:00Z",
       "physical_marks": "Tattoo of a dragon on left bicep, scar on left eyebrow"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/46.jpg',
     'active', '2026-07-31T20:00:00Z'
   ),
 
@@ -80,7 +80,7 @@ VALUES
       "last_seen_time": "2026-08-01T15:30:00Z",
       "physical_marks": "Silver nose ring on left side, small star tattoo on right wrist"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/44.jpg',
     'active', '2026-08-01T15:30:00Z'
   ),
 
@@ -97,7 +97,7 @@ VALUES
       "last_seen_time": "2026-08-01T21:00:00Z",
       "physical_marks": "Deep scar on left knee, black threads around right ankle"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/86.jpg',
     'active', '2026-08-01T21:00:00Z'
   ),
 
@@ -114,7 +114,7 @@ VALUES
       "last_seen_time": "2026-07-31T17:00:00Z",
       "physical_marks": "Slight limp in walking, birthmark on neck"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/33.jpg',
     'active', '2026-07-31T17:00:00Z'
   ),
 
@@ -131,7 +131,7 @@ VALUES
       "last_seen_time": "2026-08-02T07:30:00Z",
       "physical_marks": "Dementia patient, speaks Hindi and Telugu, silver ring on right hand"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/81.jpg',
     'active', '2026-08-02T07:30:00Z'
   ),
 
@@ -148,7 +148,7 @@ VALUES
       "last_seen_time": "2026-08-01T22:00:00Z",
       "physical_marks": "Tattoo of an anchor on left wrist"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/90.jpg',
     'active', '2026-08-01T22:00:00Z'
   ),
 
@@ -165,7 +165,7 @@ VALUES
       "last_seen_time": "2026-07-30T10:00:00Z",
       "physical_marks": "Limp in left leg, wears prescription glasses"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/62.jpg',
     'active', '2026-07-30T10:00:00Z'
   ),
 
@@ -182,7 +182,7 @@ VALUES
       "last_seen_time": "2026-08-01T16:00:00Z",
       "physical_marks": "Scar on right elbow"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/11.jpg',
     'active', '2026-08-01T16:00:00Z'
   ),
 
@@ -202,7 +202,7 @@ VALUES
       "vehicle_type": "Pedestrian (hit-and-run by auto-rickshaw)",
       "personal_belongings": "Steel wrist watch, empty wallet"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/75.jpg',
     'active', '2026-08-01T19:15:00Z'
   ),
 
@@ -220,7 +220,7 @@ VALUES
       "vehicle_type": "Pedestrian",
       "personal_belongings": "Gold-plated bangles, cloth purse"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/65.jpg',
     'active', '2026-08-01T11:30:00Z'
   ),
 
@@ -238,7 +238,7 @@ VALUES
       "vehicle_type": "Motorcycle (skidded)",
       "personal_belongings": "Black helmet, motorcycle key"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/46.jpg',
     'active', '2026-07-31T20:45:00Z'
   ),
 
@@ -256,7 +256,7 @@ VALUES
       "vehicle_type": "Pedestrian (hit by two-wheeler)",
       "personal_belongings": "Silver nose ring, brown jute bag with book and lunch box"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/44.jpg',
     'active', '2026-08-01T16:10:00Z'
   ),
 
@@ -274,7 +274,7 @@ VALUES
       "vehicle_type": "Pedestrian",
       "personal_belongings": "Black thread around right ankle"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/86.jpg',
     'active', '2026-08-01T21:40:00Z'
   ),
 
@@ -292,7 +292,7 @@ VALUES
       "vehicle_type": "Bicycle vs Car",
       "personal_belongings": "Sports watch, broken spectacles"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/33.jpg',
     'active', '2026-07-31T17:45:00Z'
   ),
 
@@ -310,7 +310,7 @@ VALUES
       "vehicle_type": "Pedestrian",
       "personal_belongings": "Silver ring on right hand, steel bangles"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/81.jpg',
     'active', '2026-08-02T08:15:00Z'
   ),
 
@@ -328,7 +328,7 @@ VALUES
       "vehicle_type": "Pedestrian",
       "personal_belongings": "None"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/90.jpg',
     'active', '2026-08-01T22:30:00Z'
   ),
 
@@ -346,7 +346,7 @@ VALUES
       "vehicle_type": "Pedestrian (hit-and-run)",
       "personal_belongings": "Broken glasses found nearby"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/62.jpg',
     'active', '2026-07-30T18:00:00Z'
   ),
 
@@ -364,7 +364,7 @@ VALUES
       "vehicle_type": "Pedestrian",
       "personal_belongings": "Wrist watch"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/11.jpg',
     'active', '2026-08-02T11:00:00Z'
   );
 
@@ -389,7 +389,7 @@ VALUES
       "patient_condition": "Unconscious, Stable",
       "ward_number": "ICU Ward 3, Bed 12"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/75.jpg',
     'active', '2026-08-01T20:00:00Z'
   ),
 
@@ -405,7 +405,7 @@ VALUES
       "patient_condition": "Disoriented, unable to speak clearly, stable",
       "ward_number": "General Ward 5, Bed 3"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/65.jpg',
     'active', '2026-08-01T12:15:00Z'
   ),
 
@@ -421,7 +421,7 @@ VALUES
       "patient_condition": "Semi-conscious, confused",
       "ward_number": "Special Ward A, Bed 4"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/46.jpg',
     'active', '2026-07-31T21:30:00Z'
   ),
 
@@ -437,7 +437,7 @@ VALUES
       "patient_condition": "Unconscious, stable",
       "ward_number": "Emergency Ward 2, Bed 8"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/44.jpg',
     'active', '2026-08-01T17:00:00Z'
   ),
 
@@ -453,7 +453,7 @@ VALUES
       "patient_condition": "Conscious but mute due to shock, stable",
       "ward_number": "Orthopedic Ward 1, Bed 15"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/86.jpg',
     'active', '2026-08-01T22:30:00Z'
   ),
 
@@ -469,7 +469,7 @@ VALUES
       "patient_condition": "Conscious, memory loss regarding incident, stable",
       "ward_number": "General Ward 2, Bed 19"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/33.jpg',
     'active', '2026-07-31T18:45:00Z'
   ),
 
@@ -485,7 +485,7 @@ VALUES
       "patient_condition": "Disoriented, speaks incoherently, stable",
       "ward_number": "Geriatric Ward C, Bed 2"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/81.jpg',
     'active', '2026-08-02T08:50:00Z'
   ),
 
@@ -501,7 +501,7 @@ VALUES
       "patient_condition": "Unconscious, stable",
       "ward_number": "ICU Ward 3, Bed 14"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/women/90.jpg',
     'active', '2026-08-01T23:15:00Z'
   ),
 
@@ -517,7 +517,7 @@ VALUES
       "patient_condition": "Conscious but confused, unable to speak clearly",
       "ward_number": "Special Care Ward B, Bed 1"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/62.jpg',
     'active', '2026-07-30T19:30:00Z'
   ),
 
@@ -533,6 +533,6 @@ VALUES
       "patient_condition": "Unconscious",
       "ward_number": "ICU Bed 5"
     }'::jsonb,
-    'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=300',
+    'https://randomuser.me/api/portraits/men/11.jpg',
     'active', '2026-08-02T12:00:00Z'
   );
