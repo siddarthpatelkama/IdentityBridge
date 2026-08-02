@@ -103,10 +103,22 @@ export default function MatchCard({ match = {}, onVerified }) {
 
     return (
         <div
-            className="card-secure p-6 max-w-md w-full bg-white border border-bg-subtle shadow-card text-left transition-all"
+            className="card-secure p-6 w-full bg-white border border-bg-subtle shadow-card text-left transition-all flex flex-col justify-between"
             role="region"
             aria-label={`Match result ${displayId ? `ID ${displayId}` : ""}`}
         >
+            {/* Case Photograph */}
+            {match.image_url && (
+                <div className="relative w-full h-48 mb-4 overflow-hidden rounded-md bg-bg-subtle">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={match.image_url}
+                        alt="Case photograph"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            )}
+
             {/* Header with Case ID and Confidence Score */}
             <div className="flex justify-between items-start gap-4 border-b border-bg-subtle pb-4 mb-4">
                 <div>

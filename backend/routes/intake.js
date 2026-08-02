@@ -635,7 +635,12 @@ router.post('/match/verify', async (req, res) => {
     if (report.contact_info) {
       const smsBody = `URGENT - IdentyBridge: A match has been officially verified for your missing person report. Your family member is located at ${patient.hospital_name}. Please contact the hospital or local authorities immediately. (Match Reference: ${rId.substring(0,8)})`;
       console.log(`Dispatching Twilio SMS to: ${report.contact_info}`);
-      smsResult = await sendSMS(report.contact_info, smsBody);
+      try {
+        smsResult = await sendSMS(report.contact_info, smsBody);
+      } catch (smsErr) {
+        console.error('Failed to send Twilio SMS, but proceeding with verification:', smsErr.message);
+        smsResult = { success: false, error: smsErr.message };
+      }
     }
 
     return res.status(200).json({
