@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Head from "next/head";
-import { Shield, Sparkles, FileText, Search, ShieldAlert, CheckCircle2, Info } from "lucide-react";
+import { Shield, Sparkles, FileText, Search, ShieldAlert, CheckCircle2, Info, Loader2 } from "lucide-react";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import MatchCard from "@/components/MatchCard";
 
