@@ -37,11 +37,25 @@ export default function IntakeDashboard() {
 
     // 1. Voice Intake outcome handler
     const handleVoiceResult = (data) => {
+        // Automatically populate manual form fields with AI-extracted properties
+        if (data && data.record && data.record.extracted_data) {
+            const ext = data.record.extracted_data;
+            setFormData({
+                age_estimate: ext.age_estimate !== undefined && ext.age_estimate !== null ? ext.age_estimate : "",
+                gender: ext.gender || "",
+                clothing: ext.clothing || "",
+                location_found: ext.location_found || ext.location || "",
+                injuries: ext.injuries || ext.physical_marks || "",
+            });
+        }
+
         // If backend returns match details, populate results area
         if (data && (data.match || data.matchData || data.id || data.confidence)) {
-            // Map potential response formats flexibly
             const extractedMatch = data.match || data.matchData || data;
             setMatchData(extractedMatch);
+            setSearchStatus("result");
+        } else if (data && data.matches && data.matches.length > 0) {
+            setMatchData(data.matches[0]);
             setSearchStatus("result");
         } else {
             setMatchData(null);
