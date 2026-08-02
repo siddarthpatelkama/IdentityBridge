@@ -11,6 +11,8 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+
 
 const EMPTY_DATA = {
   missingReports: [],
@@ -177,6 +179,17 @@ function EmptyTableState({ message }) {
 }
 
 export default function Dashboard() {
+  const handleSignOut = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      localStorage.removeItem("identybridge_role");
+      localStorage.removeItem("identybridge_fullname");
+      localStorage.removeItem("identybridge_facility_name");
+      localStorage.removeItem("identybridge_facility_location");
+      window.location.href = "/";
+    }
+  };
+
   const [data, setData] = useState(EMPTY_DATA);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
@@ -290,6 +303,13 @@ export default function Dashboard() {
                 />
                 System Monitoring
               </div>
+
+              <button
+                onClick={handleSignOut}
+                className="bg-transparent hover:bg-white/10 text-white/80 hover:text-white px-3 py-2 text-xs font-semibold rounded-md border border-white/10 transition cursor-pointer"
+              >
+                Sign Out
+              </button>
 
               <button
                 type="button"

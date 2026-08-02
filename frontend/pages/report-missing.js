@@ -11,8 +11,21 @@ import {
 } from "lucide-react";
 
 import MatchCard from "../components/MatchCard";
+import { supabase } from "@/lib/supabaseClient";
+
 
 export default function ReportMissing() {
+  const handleSignOut = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      localStorage.removeItem("identybridge_role");
+      localStorage.removeItem("identybridge_fullname");
+      localStorage.removeItem("identybridge_facility_name");
+      localStorage.removeItem("identybridge_facility_location");
+      window.location.href = "/";
+    }
+  };
+
   const [formData, setFormData] = useState({
     age_approx: "",
     gender: "",
@@ -230,9 +243,17 @@ export default function ReportMissing() {
             </div>
           </div>
 
-          <div className="hidden items-center gap-2 text-xs font-medium text-white/70 sm:flex">
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-            Secure Public Intake
+          <div className="flex items-center gap-2 text-xs font-medium text-white/70">
+            <span className="hidden items-center gap-2 sm:flex mr-2">
+              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              Secure Public Intake
+            </span>
+            <button
+              onClick={handleSignOut}
+              className="bg-transparent hover:bg-white/10 text-white/80 hover:text-white px-3 py-1 text-xs font-semibold rounded-md border border-white/10 transition cursor-pointer"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </header>

@@ -3,8 +3,21 @@ import Head from "next/head";
 import { Shield, Sparkles, FileText, Search, ShieldAlert, CheckCircle2, Info, Loader2 } from "lucide-react";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import MatchCard from "@/components/MatchCard";
+import { supabase } from "@/lib/supabaseClient";
+
 
 export default function IntakeDashboard() {
+    const handleSignOut = async () => {
+        if (supabase) {
+            await supabase.auth.signOut();
+            localStorage.removeItem("identybridge_role");
+            localStorage.removeItem("identybridge_fullname");
+            localStorage.removeItem("identybridge_facility_name");
+            localStorage.removeItem("identybridge_facility_location");
+            window.location.href = "/";
+        }
+    };
+
     // Page states
     const [formData, setFormData] = useState({
         age_estimate: "",
@@ -147,6 +160,12 @@ export default function IntakeDashboard() {
                             <Shield className="w-3.5 h-3.5 fill-[#14B8A6]/10" aria-hidden="true" />
                             Secure Intake
                         </span>
+                        <button
+                            onClick={handleSignOut}
+                            className="bg-transparent hover:bg-white/10 text-white/80 hover:text-white px-3 py-1 text-xs font-semibold rounded-md border border-white/10 transition cursor-pointer"
+                        >
+                            Sign Out
+                        </button>
                     </div>
                 </div>
             </header>
