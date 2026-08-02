@@ -3,8 +3,12 @@ require('dotenv').config();
 
 const geminiKey = process.env.GEMINI_API_KEY;
 
-if (!geminiKey) {
-  console.warn('Warning: GEMINI_API_KEY environment variable is missing.');
+function isKeyValid(key) {
+  return typeof key === 'string' && key.trim().startsWith('AIzaSy');
+}
+
+if (!isKeyValid(geminiKey)) {
+  console.warn('Warning: GEMINI_API_KEY environment variable is missing or invalid (must start with AIzaSy).');
 }
 
 /**
@@ -14,8 +18,8 @@ if (!geminiKey) {
  * @returns {Promise<string>} The transcribed text
  */
 async function transcribeAudio(fileBuffer, mimeType = 'audio/webm') {
-  if (!process.env.GEMINI_API_KEY) {
-    console.log('Gemini API key missing. Returning mock transcription.');
+  if (!isKeyValid(process.env.GEMINI_API_KEY)) {
+    console.log('Gemini API key missing or invalid. Returning mock transcription.');
     return 'Male, roughly 25 years old, wearing a red shirt and black pants, found unconscious near Secunderabad railway station with a head injury.';
   }
 
@@ -57,8 +61,8 @@ async function transcribeAudio(fileBuffer, mimeType = 'audio/webm') {
  * @returns {Promise<object>} The extracted JSON payload
  */
 async function extractStructuredData(rawText, isPatient = true) {
-  if (!process.env.GEMINI_API_KEY) {
-    console.log('Gemini API key missing. Returning mock structured data.');
+  if (!isKeyValid(process.env.GEMINI_API_KEY)) {
+    console.log('Gemini API key missing or invalid. Returning mock structured data.');
     if (isPatient) {
       return {
         age_estimate: 25,
@@ -132,7 +136,7 @@ function getSeededRandom(seedString) {
  * @returns {Promise<number[]>} The 1536-dimension float array
  */
 async function generateEmbedding(text) {
-  if (!process.env.GEMINI_API_KEY) {
+  if (!isKeyValid(process.env.GEMINI_API_KEY)) {
     console.log(`[EMBEDDING SIMULATION] Generating deterministic vector for: "${text.substring(0, 40)}..."`);
     
     const clean = text.toLowerCase();
