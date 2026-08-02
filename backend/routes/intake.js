@@ -50,7 +50,9 @@ function flattenMatch(candidate, activeRecord) {
     location: extData.location_missing || extData.location_found || extData.location || '—',
     physicalMarks: extData.physical_marks || extData.injuries || '—',
     image_url: candidate.image_url || null,
-    status: candidate.status || 'active'
+    status: candidate.status || 'active',
+    contactInfo: candidate.contact_info || extData.contact_info || '—',
+    reporterName: extData.reporter_name || extData.officer_name || '—'
   };
 }
 
