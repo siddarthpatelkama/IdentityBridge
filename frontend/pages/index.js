@@ -13,8 +13,47 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState("Public User");
+
+  useEffect(() => {
+    if (!supabase) return;
+    
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      if (session) {
+        setUserRole(localStorage.getItem("identybridge_role") || "Public User");
+      }
+    });
+
+    // Listen to changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+      if (session) {
+        setUserRole(localStorage.getItem("identybridge_role") || "Public User");
+      } else {
+        setUserRole("Public User");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      localStorage.removeItem("identybridge_role");
+      localStorage.removeItem("identybridge_fullname");
+      localStorage.removeItem("identybridge_facility_name");
+      localStorage.removeItem("identybridge_facility_location");
+      window.location.reload();
+    }
+  };
+
   return (
     <>
       <Head>
@@ -59,15 +98,32 @@ export default function Home() {
                 Dashboard
               </Link>
 
-              <Link
-                href="/intake"
-                className="rounded-lg px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-              >
-                Intake
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/intake"
+                    className="rounded-lg px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+                  >
+                    Intake
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="rounded-lg px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/signin"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+                >
+                  Sign In
+                </Link>
+              )}
 
               <Link
-                href="/report-missing"
+                href={isAuthenticated ? "/report-missing" : "/signin?redirect=/report-missing"}
                 className="rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-[#0B1F3A] shadow-lg transition hover:bg-white/90"
               >
                 Report Missing
@@ -127,7 +183,7 @@ export default function Home() {
                 {/* BUTTONS */}
                 <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                   <Link
-                    href="/report-missing"
+                    href={isAuthenticated ? "/report-missing" : "/signin?redirect=/report-missing"}
                     className="group inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3.5 text-sm font-semibold text-[#0B1F3A] shadow-xl transition hover:-translate-y-0.5"
                   >
                     <Search size={17} />
@@ -139,7 +195,7 @@ export default function Home() {
                   </Link>
 
                   <Link
-                    href="/intake"
+                    href={isAuthenticated ? "/intake" : "/signin?redirect=/intake"}
                     className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/[0.06] px-5 py-3.5 text-sm font-medium text-white backdrop-blur transition hover:bg-white/10"
                   >
                     <HeartPulse size={17} />
@@ -357,7 +413,7 @@ export default function Home() {
               </div>
 
               <Link
-                href="/report-missing"
+                href={isAuthenticated ? "/report-missing" : "/signin?redirect=/report-missing"}
                 className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-[#0B1F3A] transition hover:bg-white/90"
               >
                 Get started
