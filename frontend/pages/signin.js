@@ -114,12 +114,11 @@ export default function SignIn() {
         localStorage.setItem("identybridge_role", role);
         localStorage.setItem("identybridge_fullname", fullName);
         localStorage.setItem("identybridge_phone", phoneNumber);
+        localStorage.setItem("identybridge_facility_location", facilityLocation);
         if (role === "Police" || role === "Hospital") {
             localStorage.setItem("identybridge_facility_name", facilityName);
-            localStorage.setItem("identybridge_facility_location", facilityLocation);
         } else {
             localStorage.removeItem("identybridge_facility_name");
-            localStorage.removeItem("identybridge_facility_location");
         }
     };
 
@@ -162,8 +161,9 @@ export default function SignIn() {
                 email: tempSession.user.email,
                 full_name: fullName || tempSession.user.user_metadata.full_name || "Google User",
                 role: role,
-                facility_name: (role === "Police" || role === "Hospital") ? facilityName : "",
-                facility_location: (role === "Police" || role === "Hospital") ? facilityLocation : ""
+                phone_number: phoneNumber,
+                facility_name: (role === "Police" || role === "Hospital") ? facilityName : "Public Home",
+                facility_location: facilityLocation
             };
 
             const { error: insertError } = await supabase
@@ -176,9 +176,9 @@ export default function SignIn() {
             localStorage.setItem("identybridge_role", role);
             localStorage.setItem("identybridge_fullname", profileData.full_name);
             localStorage.setItem("identybridge_phone", phoneNumber);
+            localStorage.setItem("identybridge_facility_location", facilityLocation);
             if (role === "Police" || role === "Hospital") {
                 localStorage.setItem("identybridge_facility_name", facilityName);
-                localStorage.setItem("identybridge_facility_location", facilityLocation);
             }
 
             setNeedsRoleSelection(false);
@@ -241,8 +241,9 @@ export default function SignIn() {
                 email: email,
                 full_name: fullName,
                 role: role,
-                facility_name: (role === "Police" || role === "Hospital") ? facilityName : "",
-                facility_location: (role === "Police" || role === "Hospital") ? facilityLocation : ""
+                phone_number: phoneNumber,
+                facility_name: (role === "Police" || role === "Hospital") ? facilityName : "Public Home",
+                facility_location: facilityLocation
             };
 
             const { error: upsertError } = await supabase
@@ -573,9 +574,9 @@ export default function SignIn() {
                             </div>
 
                             {/* DYNAMIC METADATA FIELDS (Hospital or Police name & location) */}
-                            {(role === "Police" || role === "Hospital") && (
-                                <div className="space-y-4 pt-2 border-t border-dashed border-[#E8EEF5] animate-fadeIn">
-                                    <div>
+                            <div className="space-y-4 pt-2 border-t border-dashed border-[#E8EEF5]">
+                                {(role === "Police" || role === "Hospital") && (
+                                    <div className="animate-fadeIn">
                                         <label
                                             htmlFor="facilityName"
                                             className="block text-xs font-bold text-[#0F766E] mb-1.5 uppercase tracking-wider"
@@ -594,28 +595,28 @@ export default function SignIn() {
                                             className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm focus:border-[#1D5D8F] focus:ring-1 focus:ring-[#1D5D8F]"
                                         />
                                     </div>
+                                )}
 
-                                    <div>
-                                        <label
-                                            htmlFor="facilityLocation"
-                                            className="block text-xs font-bold text-[#0F766E] mb-1.5 uppercase tracking-wider"
-                                        >
-                                            Facility Location
-                                        </label>
-                                        <input
-                                            id="facilityLocation"
-                                            name="facilityLocation"
-                                            type="text"
-                                            required
-                                            disabled={loading}
-                                            value={facilityLocation}
-                                            onChange={(e) => setFacilityLocation(e.target.value)}
-                                            placeholder="e.g. Road No 36, Hyderabad"
-                                            className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm focus:border-[#1D5D8F] focus:ring-1 focus:ring-[#1D5D8F]"
-                                        />
-                                    </div>
+                                <div>
+                                    <label
+                                        htmlFor="facilityLocation"
+                                        className="block text-xs font-bold text-[#0F766E] mb-1.5 uppercase tracking-wider"
+                                    >
+                                        {role === "Public User" ? "Your Location / Neighborhood Address" : "Facility Location"}
+                                    </label>
+                                    <input
+                                        id="facilityLocation"
+                                        name="facilityLocation"
+                                        type="text"
+                                        required
+                                        disabled={loading}
+                                        value={facilityLocation}
+                                        onChange={(e) => setFacilityLocation(e.target.value)}
+                                        placeholder={role === "Public User" ? "e.g. Kukatpally, Hyderabad" : "e.g. Road No 36, Hyderabad"}
+                                        className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm focus:border-[#1D5D8F] focus:ring-1 focus:ring-[#1D5D8F]"
+                                    />
                                 </div>
-                            )}
+                            </div>
 
                             <div className="pt-2">
                                 <button
