@@ -103,3 +103,25 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- 7. Create the user_profiles table to store user roles and metadata
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID PRIMARY KEY,
+  email TEXT NOT NULL,
+  full_name TEXT,
+  role TEXT CHECK (role IN ('Public User', 'Police', 'Hospital')) DEFAULT 'Public User' NOT NULL,
+  facility_name TEXT,
+  facility_location TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Disable RLS on user_profiles for hackathon access convenience
+ALTER TABLE user_profiles DISABLE ROW LEVEL SECURITY;
+
+-- Fallback public bypass policy in case RLS remains active
+DROP POLICY IF EXISTS "Public Access Profiles" ON user_profiles;
+CREATE POLICY "Public Access Profiles" ON user_profiles 
+  FOR ALL 
+  TO public 
+  USING (true) 
+  WITH CHECK (true);

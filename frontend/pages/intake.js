@@ -1,10 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import { Shield, Sparkles, FileText, Search, ShieldAlert, CheckCircle2, Info, Loader2 } from "lucide-react";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import MatchCard from "@/components/MatchCard";
+import { supabase } from "@/lib/supabaseClient";
+import { getApiUrl } from "@/utils/api";
+
 
 export default function IntakeDashboard() {
+    const handleSignOut = async () => {
+        if (supabase) {
+            await supabase.auth.signOut();
+            localStorage.removeItem("identybridge_role");
+            localStorage.removeItem("identybridge_fullname");
+            localStorage.removeItem("identybridge_facility_name");
+            localStorage.removeItem("identybridge_facility_location");
+            window.location.href = "/";
+        }
+    };
+
     // Page states
     const [formData, setFormData] = useState({
         age_estimate: "",
@@ -20,6 +35,23 @@ export default function IntakeDashboard() {
     const [errorMessage, setErrorMessage] = useState(null);
     const [verifiedList, setVerifiedList] = useState({}); // Tracking verified matches locally by ID
     const [photoFile, setPhotoFile] = useState(null);
+
+    // Persist form state across refreshes
+    useEffect(() => {
+        const saved = localStorage.getItem("identybridge_intake_form");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                setFormData(prev => ({ ...prev, ...parsed }));
+            } catch (e) {
+                console.error("Error loading cached intake form:", e);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("identybridge_intake_form", JSON.stringify(formData));
+    }, [formData]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -76,7 +108,7 @@ export default function IntakeDashboard() {
         }
 
         try {
-            const response = await fetch("/api/intake/text", {
+            const response = await fetch(getApiUrl("/api/intake/text"), {
                 method: "POST",
                 body: formDataPayload,
                 // Content-Type is omitted so the browser sets the multipart boundary automatically
@@ -85,6 +117,8 @@ export default function IntakeDashboard() {
             if (!response.ok) {
                 throw new Error(`Intake submission failed: ${response.status} ${response.statusText}`);
             }
+
+            localStorage.removeItem("identybridge_intake_form");
 
             let data;
             try {
@@ -135,18 +169,24 @@ export default function IntakeDashboard() {
             {/* HEADER SECTION */}
             <header className="bg-primary-navy text-white shadow-subtle border-b border-[#123B66]">
                 <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <Link href="/" className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition">
                         <h1 className="text-xl font-bold tracking-tight text-white m-0">IdentyBridge</h1>
                         <span className="h-4 w-px bg-primary-trust opacity-40 hidden sm:inline"></span>
                         <span className="text-sm font-semibold text-bg-subtle hidden sm:inline">
                             Police & Hospital Intake
                         </span>
-                    </div>
+                    </Link>
                     <div className="flex items-center gap-2">
                         <span className="badge-secure bg-[#123B66] text-[#14B8A6] border border-[#1D5D8F] flex items-center gap-1.5 px-3 py-1 font-semibold text-xs rounded-full">
                             <Shield className="w-3.5 h-3.5 fill-[#14B8A6]/10" aria-hidden="true" />
                             Secure Intake
                         </span>
+                        <button
+                            onClick={handleSignOut}
+                            className="bg-transparent hover:bg-white/10 text-white/80 hover:text-white px-3 py-1 text-xs font-semibold rounded-md border border-white/10 transition cursor-pointer"
+                        >
+                            Sign Out
+                        </button>
                     </div>
                 </div>
             </header>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Activity,
   AlertCircle,
@@ -11,6 +12,9 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { getApiUrl } from "@/utils/api";
+
 
 const EMPTY_DATA = {
   missingReports: [],
@@ -177,6 +181,17 @@ function EmptyTableState({ message }) {
 }
 
 export default function Dashboard() {
+  const handleSignOut = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      localStorage.removeItem("identybridge_role");
+      localStorage.removeItem("identybridge_fullname");
+      localStorage.removeItem("identybridge_facility_name");
+      localStorage.removeItem("identybridge_facility_location");
+      window.location.href = "/";
+    }
+  };
+
   const [data, setData] = useState(EMPTY_DATA);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
@@ -187,7 +202,7 @@ export default function Dashboard() {
     setError("");
 
     try {
-      const response = await fetch("/api/dashboard", {
+      const response = await fetch(getApiUrl("/api/dashboard"), {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -263,7 +278,7 @@ export default function Dashboard() {
       <header className="border-b border-primary-inst bg-primary-navy text-white">
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition">
               <div className="flex h-11 w-11 items-center justify-center rounded-md bg-white/10">
                 <ShieldCheck
                   className="h-6 w-6 text-secondary-soft-teal"
@@ -272,7 +287,7 @@ export default function Dashboard() {
               </div>
 
               <div>
-                <p className="text-xl font-bold tracking-tight">
+                <p className="text-xl font-bold tracking-tight text-white">
                   IdentyBridge
                 </p>
 
@@ -280,7 +295,7 @@ export default function Dashboard() {
                   System Overview Dashboard
                 </p>
               </div>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-3">
               <div className="hidden items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white/80 sm:flex">
@@ -290,6 +305,13 @@ export default function Dashboard() {
                 />
                 System Monitoring
               </div>
+
+              <button
+                onClick={handleSignOut}
+                className="bg-transparent hover:bg-white/10 text-white/80 hover:text-white px-3 py-2 text-xs font-semibold rounded-md border border-white/10 transition cursor-pointer"
+              >
+                Sign Out
+              </button>
 
               <button
                 type="button"

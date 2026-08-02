@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Mic, Square, Loader2, AlertCircle, CheckCircle2, RotateCcw } from "lucide-react";
+import { getApiUrl } from "@/utils/api";
 
 export default function VoiceRecorder({ onResult }) {
     const [status, setStatus] = useState("idle"); // 'idle' | 'recording' | 'processing' | 'success' | 'error'
@@ -110,7 +111,7 @@ export default function VoiceRecorder({ onResult }) {
         formData.append("audio", audioBlob, "intake_recording.webm");
 
         try {
-            const response = await fetch("/api/intake/transcribe", {
+            const response = await fetch(getApiUrl("/api/intake/transcribe"), {
                 method: "POST",
                 body: formData,
                 // Content-Type is NOT set manually so browser handles multipart boundary

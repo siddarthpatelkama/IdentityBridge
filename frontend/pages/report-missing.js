@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
   ArrowRight,
@@ -11,8 +12,22 @@ import {
 } from "lucide-react";
 
 import MatchCard from "../components/MatchCard";
+import { supabase } from "@/lib/supabaseClient";
+import { getApiUrl } from "@/utils/api";
+
 
 export default function ReportMissing() {
+  const handleSignOut = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      localStorage.removeItem("identybridge_role");
+      localStorage.removeItem("identybridge_fullname");
+      localStorage.removeItem("identybridge_facility_name");
+      localStorage.removeItem("identybridge_facility_location");
+      window.location.href = "/";
+    }
+  };
+
   const [formData, setFormData] = useState({
     age_approx: "",
     gender: "",
@@ -26,6 +41,23 @@ export default function ReportMissing() {
   const [error, setError] = useState("");
   const [posterStatus, setPosterStatus] = useState("idle");
   const [photoFile, setPhotoFile] = useState(null);
+
+  // Persist form state across refreshes
+  useEffect(() => {
+    const saved = localStorage.getItem("identybridge_report_form");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setFormData(prev => ({ ...prev, ...parsed }));
+      } catch (e) {
+        console.error("Error loading cached report form:", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("identybridge_report_form", JSON.stringify(formData));
+  }, [formData]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -103,7 +135,7 @@ export default function ReportMissing() {
     }
 
     try {
-      const response = await fetch("/api/intake/text", {
+      const response = await fetch(getApiUrl("/api/intake/text"), {
         method: "POST",
         body: formDataPayload,
         // Content-Type is omitted so the browser sets the multipart boundary automatically
@@ -124,6 +156,8 @@ export default function ReportMissing() {
             "We could not process the report right now."
         );
       }
+
+      localStorage.removeItem("identybridge_report_form");
 
       const returnedMatches = extractMatches(data);
 
@@ -151,7 +185,7 @@ export default function ReportMissing() {
     setError("");
 
     try {
-      const response = await fetch("/api/generate-poster", {
+      const response = await fetch(getApiUrl("/api/generate-poster"), {
         method: "GET",
       });
 
@@ -211,7 +245,7 @@ export default function ReportMissing() {
       {/* HEADER */}
       <header className="border-b border-bg-subtle bg-primary-navy text-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition">
             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white/10">
               <ShieldCheck
                 className="h-6 w-6 text-secondary-teal"
@@ -228,11 +262,19 @@ export default function ReportMissing() {
                 Public Portal
               </p>
             </div>
-          </div>
+          </Link>
 
-          <div className="hidden items-center gap-2 text-xs font-medium text-white/70 sm:flex">
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-            Secure Public Intake
+          <div className="flex items-center gap-2 text-xs font-medium text-white/70">
+            <span className="hidden items-center gap-2 sm:flex mr-2">
+              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              Secure Public Intake
+            </span>
+            <button
+              onClick={handleSignOut}
+              className="bg-transparent hover:bg-white/10 text-white/80 hover:text-white px-3 py-1 text-xs font-semibold rounded-md border border-white/10 transition cursor-pointer"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </header>
@@ -549,7 +591,7 @@ export default function ReportMissing() {
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {matches.map((match, index) => (
                 <MatchCard
                   key={

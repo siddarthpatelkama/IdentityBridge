@@ -212,6 +212,209 @@ async function processIntake({ type, hospital_name, reporter_type, contact_info,
 }
 
 /**
+ * GET /api/seed
+ * Seed the database with 5 high-quality, matching pairs of missing persons and unidentified patients.
+ */
+router.get('/seed', async (req, res) => {
+  try {
+    console.log('Starting seed process via API...');
+
+    // 1. Define matching mock data
+    const missingReportsMock = [
+      {
+        reporter_type: 'family',
+        contact_info: '+91-98765-43210',
+        image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          reporter_name: "Amit Kumar",
+          missing_person_name: "Rahul Kumar",
+          age_approx: 24,
+          gender: "Male",
+          height: "175 cm",
+          clothing: "Blue crewneck t-shirt, beige cargo shorts, white sneakers",
+          location_missing: "Kukatpally, near Metro Station",
+          last_seen_time: "2026-08-01T18:30:00Z",
+          physical_marks: "Small black mole on left cheek, steel watch on right wrist"
+        }
+      },
+      {
+        reporter_type: 'family',
+        contact_info: '+91-99887-76655',
+        image_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          reporter_name: "Gopal Rao",
+          missing_person_name: "Sunitha Rao",
+          age_approx: 62,
+          gender: "Female",
+          height: "152 cm",
+          clothing: "Green cotton saree with red border, gold bangles",
+          location_missing: "Begumpet, near Metro Station",
+          last_seen_time: "2026-08-01T10:00:00Z",
+          physical_marks: "Speaks only Telugu, green-and-gold bangles, surgical scar on right knee"
+        }
+      },
+      {
+        reporter_type: 'family',
+        contact_info: '+91-94401-23456',
+        image_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          reporter_name: "Kavitha Reddy",
+          missing_person_name: "Vikram Reddy",
+          age_approx: 35,
+          gender: "Male",
+          height: "180 cm",
+          clothing: "Black polo t-shirt, grey jeans, sports shoes",
+          location_missing: "Dilsukhnagar, near Sai Baba Temple",
+          last_seen_time: "2026-07-31T20:00:00Z",
+          physical_marks: "Tattoo of a dragon on left bicep, scar on left eyebrow"
+        }
+      },
+      {
+        reporter_type: 'family',
+        contact_info: '+91-91234-56789',
+        image_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          reporter_name: "Sourav Sen",
+          missing_person_name: "Ananya Sen",
+          age_approx: 21,
+          gender: "Female",
+          height: "160 cm",
+          clothing: "Yellow kurta, white leggings, brown jute bag",
+          location_missing: "Secunderabad, near Railway Station",
+          last_seen_time: "2026-08-01T15:30:00Z",
+          physical_marks: "Silver nose ring on left side, small star tattoo on right wrist"
+        }
+      },
+      {
+        reporter_type: 'family',
+        contact_info: '+91-93921-98765',
+        image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          reporter_name: "Yasmin Begum",
+          missing_person_name: "Mohammad Rizwan",
+          age_approx: 29,
+          gender: "Male",
+          height: "172 cm",
+          clothing: "Green checked shirt, black jeans, grey running shoes",
+          location_missing: "LB Nagar, near Ring Road Junction",
+          last_seen_time: "2026-08-01T21:00:00Z",
+          physical_marks: "Deep scar on left knee, black threads around right ankle"
+        }
+      }
+    ];
+
+    const unidentifiedPatientsMock = [
+      {
+        hospital_name: 'NIMS Hospital, Panjagutta',
+        image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          age_estimate: 23,
+          gender: "Male",
+          height: "175 cm",
+          clothing: "Blue crewneck t-shirt (cut during triage), beige shorts",
+          location_found: "Near Kukatpally Y Junction",
+          injuries: "Head trauma, laceration on forehead, right leg fracture",
+          patient_condition: "Unconscious, Stable",
+          ward_number: "ICU Ward 3, Bed 12"
+        }
+      },
+      {
+        hospital_name: 'Yashoda Hospital, Somajiguda',
+        image_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          age_estimate: 60,
+          gender: "Female",
+          height: "152 cm",
+          clothing: "Green cotton saree, red blouse",
+          location_found: "Begumpet Flyover area",
+          injuries: "Right wrist fracture, minor concussion",
+          patient_condition: "Disoriented, unable to speak clearly, stable",
+          ward_number: "General Ward 5, Bed 3"
+        }
+      },
+      {
+        hospital_name: 'Osmania General Hospital',
+        image_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          age_estimate: 36,
+          gender: "Male",
+          height: "180 cm",
+          clothing: "Black polo shirt, grey jeans",
+          location_found: "Dilsukhnagar Metro Pillar area",
+          injuries: "Concussion, dislocated shoulder, left eyebrow laceration",
+          patient_condition: "Semi-conscious, confused",
+          ward_number: "Special Ward A, Bed 4"
+        }
+      },
+      {
+        hospital_name: 'Gandhi Hospital',
+        image_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          age_estimate: 20,
+          gender: "Female",
+          height: "160 cm",
+          clothing: "Yellow cotton kurta, white pants",
+          location_found: "Secunderabad Station Road",
+          injuries: "Minor head injury, scrapes on hands and forearms",
+          patient_condition: "Unconscious, stable",
+          ward_number: "Emergency Ward 2, Bed 8"
+        }
+      },
+      {
+        hospital_name: 'KIMS Hospital, Secunderabad',
+        image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
+        status: 'active',
+        extracted_data: {
+          age_estimate: 28,
+          gender: "Male",
+          height: "172 cm",
+          clothing: "Green checked shirt, black denim pants",
+          location_found: "LB Nagar Flyover Underpass",
+          injuries: "Left leg tibial fracture, facial abrasions",
+          patient_condition: "Conscious but mute due to shock, stable",
+          ward_number: "Orthopedic Ward 1, Bed 15"
+        }
+      }
+    ];
+
+    // 2. Clear existing entries first to avoid duplicates
+    await supabase.from('missing_reports').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('unidentified_patients').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+    // 3. Seed Reports
+    for (const report of missingReportsMock) {
+      const textToEmbed = Object.values(report.extracted_data).join(', ');
+      const embedding = await generateEmbedding(textToEmbed);
+      await supabase.from('missing_reports').insert({ ...report, embedding });
+    }
+
+    // 4. Seed Patients
+    for (const patient of unidentifiedPatientsMock) {
+      const textToEmbed = Object.values(patient.extracted_data).join(', ');
+      const embedding = await generateEmbedding(textToEmbed);
+      await supabase.from('unidentified_patients').insert({ ...patient, embedding });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Database successfully cleared and populated with 5 matching demo pairs!"
+    });
+  } catch (error) {
+    console.error('Seed error:', error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * POST /api/intake/transcribe
  * Only transcribes and extracts structured data from audio without inserting into database.
  */
@@ -271,7 +474,15 @@ router.post('/intake/voice', intakeUpload, async (req, res) => {
     });
   } catch (error) {
     console.error('Voice intake error:', error);
-    return res.status(500).json({ error: error.message || 'Internal Server Error' });
+    return res.status(500).json({
+      error: error.message || 'Internal Server Error',
+      stack: error.stack,
+      response: error.response ? {
+        status: error.response.status,
+        url: error.response.config ? error.response.config.url : null,
+        data: error.response.data
+      } : null
+    });
   }
 });
 
@@ -323,7 +534,15 @@ router.post('/intake/text', intakeUpload, async (req, res) => {
     });
   } catch (error) {
     console.error('Text intake error:', error);
-    return res.status(500).json({ error: error.message || 'Internal Server Error' });
+    return res.status(500).json({
+      error: error.message || 'Internal Server Error',
+      stack: error.stack,
+      response: error.response ? {
+        status: error.response.status,
+        url: error.response.config ? error.response.config.url : null,
+        data: error.response.data
+      } : null
+    });
   }
 });
 
@@ -416,7 +635,12 @@ router.post('/match/verify', async (req, res) => {
     if (report.contact_info) {
       const smsBody = `URGENT - IdentyBridge: A match has been officially verified for your missing person report. Your family member is located at ${patient.hospital_name}. Please contact the hospital or local authorities immediately. (Match Reference: ${rId.substring(0,8)})`;
       console.log(`Dispatching Twilio SMS to: ${report.contact_info}`);
-      smsResult = await sendSMS(report.contact_info, smsBody);
+      try {
+        smsResult = await sendSMS(report.contact_info, smsBody);
+      } catch (smsErr) {
+        console.error('Failed to send Twilio SMS, but proceeding with verification:', smsErr.message);
+        smsResult = { success: false, error: smsErr.message };
+      }
     }
 
     return res.status(200).json({
