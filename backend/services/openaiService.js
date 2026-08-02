@@ -137,37 +137,41 @@ function getSeededRandom(seedString) {
  */
 async function generateEmbedding(text) {
   if (!isKeyValid(process.env.GEMINI_API_KEY)) {
-    console.log(`[EMBEDDING SIMULATION] Generating deterministic vector for: "${text.substring(0, 40)}..."`);
+    console.log(`[EMBEDDING SIMULATION] Keyword-based semantic simulation for: "${text.substring(0, 50)}..."`);
     
     const clean = text.toLowerCase();
-    let seed = clean;
-    let noiseSeed = null;
-    let noiseWeight = 0.0;
+    
+    // Define keyword dictionary for semantic simulation
+    const keywords = [
+      'male', 'female', 'boy', 'girl',
+      'kukatpally', 'begumpet', 'secunderabad', 'dilsukhnagar', 'miyapur', 'panjagutta', 'somajiguda', 'osmania', 'gandhi', 'kims', 'shaikpet',
+      'blue', 'green', 'yellow', 'black', 'grey', 'gray', 'white', 'orange', 'red', 'brown',
+      'shirt', 't-shirt', 'tshirt', 'saree', 'jeans', 'pants', 'shorts', 'kurta', 'leggings', 'dress', 'top',
+      'mole', 'scar', 'tattoo', 'bangle', 'fracture', 'trauma', 'cut', 'bruise'
+    ];
 
-    if (clean.includes('secunderabad')) {
-      seed = 'secunderabad_demo_vector';
-      if (clean.includes('unconscious') || clean.includes('patient') || clean.includes('bloodstained') || clean.includes('estimate')) {
-        noiseSeed = 'secunderabad_patient_noise';
-        noiseWeight = 0.12;
-      }
-    } else if (clean.includes('jubilee')) {
-      seed = 'jubilee_hills_demo_vector';
-      if (clean.includes('unconscious') || clean.includes('patient') || clean.includes('disoriented') || clean.includes('estimate')) {
-        noiseSeed = 'jubilee_patient_noise';
-        noiseWeight = 0.15;
-      }
-    }
+    const vec = new Array(1536).fill(0);
+    let matchedCount = 0;
 
-    const rand = getSeededRandom(seed);
-    const vec = new Array(1536).fill(0).map(() => rand() - 0.5);
-
-    if (noiseSeed) {
-      const randNoise = getSeededRandom(noiseSeed);
-      for (let i = 0; i < 1536; i++) {
-        vec[i] = vec[i] * (1 - noiseWeight) + (randNoise() - 0.5) * noiseWeight;
+    // Sum up deterministic vectors for each matched keyword
+    for (const kw of keywords) {
+      if (clean.includes(kw)) {
+        matchedCount++;
+        const rand = getSeededRandom(`keyword_${kw}`);
+        for (let i = 0; i < 1536; i++) {
+          vec[i] += (rand() - 0.5);
+        }
       }
     }
 
+    // Add a unique text signature (weight 0.25) so unique text has its own signature
+    const randSig = getSeededRandom(clean);
+    const sigWeight = matchedCount > 0 ? 0.25 : 1.0;
+    for (let i = 0; i < 1536; i++) {
+      vec[i] = vec[i] * (1 - sigWeight) + (randSig() - 0.5) * sigWeight;
+    }
+
+    // Normalize to unit length for Cosine Similarity
     let len = 0;
     for (let i = 0; i < 1536; i++) len += vec[i] * vec[i];
     len = Math.sqrt(len);
