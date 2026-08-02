@@ -2,6 +2,49 @@ import React, { useState, useRef, useEffect } from "react";
 import { CheckCircle2, ShieldAlert, Loader2, ArrowRight } from "lucide-react";
 import { getApiUrl } from "@/utils/api";
 
+function GoldenHourBadge({ createdAt }) {
+    const [elapsedText, setElapsedText] = useState("");
+    const [isGolden, setIsGolden] = useState(false);
+
+    useEffect(() => {
+        if (!createdAt) return;
+        const updateTimer = () => {
+            const createdDate = new Date(createdAt);
+            const now = new Date();
+            const diffMs = now - createdDate;
+            const diffMins = Math.floor(diffMs / 60000);
+
+            if (diffMins < 60) {
+                const minsLeft = 60 - diffMins;
+                setIsGolden(true);
+                setElapsedText(`⏱️ Golden Hour: ${minsLeft}m left`);
+            } else {
+                const hrsElapsed = (diffMins / 60).toFixed(1);
+                setIsGolden(false);
+                setElapsedText(`⚠️ Golden Hour elapsed (${hrsElapsed}h ago)`);
+            }
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 60000);
+        return () => clearInterval(interval);
+    }, [createdAt]);
+
+    if (!elapsedText) return null;
+
+    return (
+        <span
+            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold border mt-1.5 ${
+                isGolden
+                    ? "bg-red-50 text-alert-emergency border-red-200 animate-pulse"
+                    : "bg-bg-subtle text-text-muted border-border-light"
+            }`}
+        >
+            {elapsedText}
+        </span>
+    );
+}
+
 export default function MatchCard({ match = {}, onVerified }) {
     const [status, setStatus] = useState("idle"); // 'idle' | 'countdown' | 'verifying' | 'verified' | 'error'
     const [error, setError] = useState(null);
@@ -155,6 +198,9 @@ export default function MatchCard({ match = {}, onVerified }) {
                     <h4 className="text-sm font-bold text-primary-navy mt-0.5">
                         {displayId ? `ID: ${displayId}` : "Reference Case Details"}
                     </h4>
+                    {match.createdAt && (
+                        <GoldenHourBadge createdAt={match.createdAt} />
+                    )}
                 </div>
                 <div
                     className={`flex flex-col items-center border rounded-md px-3 py-1.5 ${confidenceColorStyle}`}

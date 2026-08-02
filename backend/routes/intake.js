@@ -52,7 +52,8 @@ function flattenMatch(candidate, activeRecord) {
     image_url: candidate.image_url || null,
     status: candidate.status || 'active',
     contactInfo: candidate.contact_info || extData.contact_info || '—',
-    reporterName: extData.reporter_name || extData.officer_name || '—'
+    reporterName: extData.reporter_name || extData.officer_name || '—',
+    createdAt: candidate.created_at || null
   };
 }
 

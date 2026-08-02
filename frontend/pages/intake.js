@@ -37,6 +37,14 @@ export default function IntakeDashboard() {
     const [errorMessage, setErrorMessage] = useState(null);
     const [verifiedList, setVerifiedList] = useState({}); // Tracking verified matches locally by ID
     const [photoFile, setPhotoFile] = useState(null);
+    const [facilityName, setFacilityName] = useState("Gandhi Hospital");
+
+    useEffect(() => {
+        const savedFacility = localStorage.getItem("identybridge_facility_name");
+        if (savedFacility) {
+            setFacilityName(savedFacility);
+        }
+    }, []);
 
     // Persist form state across refreshes
     useEffect(() => {
@@ -176,7 +184,7 @@ export default function IntakeDashboard() {
                         <h1 className="text-xl font-bold tracking-tight text-white m-0">IdentyBridge</h1>
                         <span className="h-4 w-px bg-primary-trust opacity-40 hidden sm:inline"></span>
                         <span className="text-sm font-semibold text-bg-subtle hidden sm:inline">
-                            Police & Hospital Intake
+                            {facilityName} Intake
                         </span>
                     </Link>
                     <div className="flex items-center gap-2">
