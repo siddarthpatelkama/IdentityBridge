@@ -103,3 +103,17 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- 7. Create the user_profiles table to store user roles and metadata
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  full_name TEXT,
+  role TEXT CHECK (role IN ('Public User', 'Police', 'Hospital')) DEFAULT 'Public User' NOT NULL,
+  facility_name TEXT,
+  facility_location TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Disable RLS on user_profiles for hackathon access convenience
+ALTER TABLE user_profiles DISABLE ROW LEVEL SECURITY;

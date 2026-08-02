@@ -21,6 +21,10 @@ export default function SignIn() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    // Google Sign-In Role request trigger states
+    const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
+    const [tempSession, setTempSession] = useState(null);
+
     // Role-based routing helper with query support
     const routeUserByRole = (selectedRole) => {
         const { redirect } = router.query;
@@ -28,7 +32,6 @@ export default function SignIn() {
         if (selectedRole === "Public User" && redirect === "/intake") {
             setError("Emergency Intake is restricted to authorized Police and Hospital personnel.");
             setLoading(false);
-            // Clear metadata and sign out to avoid leaving them logged in with inconsistent route state
             if (supabase) {
                 supabase.auth.signOut().then(() => {
                     localStorage.removeItem("identybridge_role");
@@ -56,17 +59,49 @@ export default function SignIn() {
     useEffect(() => {
         if (!supabase) return;
 
+        const checkUserProfile = async (session) => {
+            if (!session) return;
+            
+            try {
+                // Fetch the persisted profile
+                const { data: profile, error: dbError } = await supabase
+                    .from("user_profiles")
+                    .select("*")
+                    .eq("id", session.user.id)
+                    .maybeSingle();
+
+                if (dbError) {
+                    console.error("Error retrieving user profile from database:", dbError);
+                }
+
+                if (profile) {
+                    // Profile already exists! Sync to local storage for local templates
+                    localStorage.setItem("identybridge_role", profile.role);
+                    localStorage.setItem("identybridge_fullname", profile.full_name || session.user.user_metadata.full_name || "Google User");
+                    if (profile.role === "Police" || profile.role === "Hospital") {
+                        localStorage.setItem("identybridge_facility_name", profile.facility_name || "");
+                        localStorage.setItem("identybridge_facility_location", profile.facility_location || "");
+                    }
+                    routeUserByRole(profile.role);
+                } else {
+                    // No profile found! Prompt user to fill role selection metadata
+                    setTempSession(session);
+                    setNeedsRoleSelection(true);
+                }
+            } catch (err) {
+                console.error("Database user profiles sync error:", err);
+            }
+        };
+
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
-                const storedRole = localStorage.getItem("identybridge_role") || "Public User";
-                routeUserByRole(storedRole);
+                checkUserProfile(session);
             }
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === "SIGNED_IN" && session) {
-                const storedRole = localStorage.getItem("identybridge_role") || "Public User";
-                routeUserByRole(storedRole);
+                checkUserProfile(session);
             }
         });
 
@@ -89,7 +124,6 @@ export default function SignIn() {
         if (loading) return;
         setLoading(true);
         setError(null);
-        saveRoleMetadata();
 
         try {
             if (!supabase) {
@@ -113,12 +147,50 @@ export default function SignIn() {
         }
     };
 
+    const handleRoleSubmission = async (e) => {
+        e.preventDefault();
+        if (!tempSession || loading) return;
+        setLoading(true);
+        setError(null);
+
+        try {
+            const profileData = {
+                id: tempSession.user.id,
+                email: tempSession.user.email,
+                full_name: fullName || tempSession.user.user_metadata.full_name || "Google User",
+                role: role,
+                facility_name: (role === "Police" || role === "Hospital") ? facilityName : "",
+                facility_location: (role === "Police" || role === "Hospital") ? facilityLocation : ""
+            };
+
+            const { error: insertError } = await supabase
+                .from("user_profiles")
+                .insert([profileData]);
+
+            if (insertError) throw insertError;
+
+            // Sync to local storage
+            localStorage.setItem("identybridge_role", role);
+            localStorage.setItem("identybridge_fullname", profileData.full_name);
+            if (role === "Police" || role === "Hospital") {
+                localStorage.setItem("identybridge_facility_name", facilityName);
+                localStorage.setItem("identybridge_facility_location", facilityLocation);
+            }
+
+            setNeedsRoleSelection(false);
+            routeUserByRole(role);
+        } catch (err) {
+            console.error("Failed to save profile:", err);
+            setError(err.message || "Failed to save role settings. Please try again.");
+            setLoading(false);
+        }
+    };
+
     const handleEmailSignIn = async (e) => {
         e.preventDefault();
         if (loading) return;
         setLoading(true);
         setError(null);
-        saveRoleMetadata();
 
         try {
             if (!supabase) {
@@ -127,22 +199,186 @@ export default function SignIn() {
                 );
             }
 
-            // Simulate / hit supabase sign in
-            const { data, error: authError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
+            // Try to sign in. If user doesn't exist, we auto-sign up to facilitate seamless hackathon testing.
+            let userSession = null;
+            try {
+                const { data, error: authError } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                
+                if (authError) {
+                    if (authError.message.toLowerCase().includes("invalid login credentials")) {
+                        // Fallback signup
+                        console.log("User not found. Triggering automatic signup...");
+                        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                            email,
+                            password,
+                        });
+                        if (signUpError) throw signUpError;
+                        userSession = signUpData.user;
+                    } else {
+                        throw authError;
+                    }
+                } else {
+                    userSession = data.user;
+                }
+            } catch (err) {
+                throw err;
+            }
 
-            if (authError) throw authError;
+            if (!userSession) {
+                throw new Error("Could not authenticate user session.");
+            }
 
-            // Force immediate redirect based on selection
+            // Sync or Upsert profile details in the database
+            const profileData = {
+                id: userSession.id,
+                email: email,
+                full_name: fullName,
+                role: role,
+                facility_name: (role === "Police" || role === "Hospital") ? facilityName : "",
+                facility_location: (role === "Police" || role === "Hospital") ? facilityLocation : ""
+            };
+
+            const { error: upsertError } = await supabase
+                .from("user_profiles")
+                .upsert([profileData], { onConflict: 'id' });
+
+            if (upsertError) throw upsertError;
+
+            // Sync to local storage
+            saveRoleMetadata();
+            
+            // Redirect
             routeUserByRole(role);
         } catch (err) {
-            console.error("Email sign in failed:", err);
+            console.error("Email authentication failed:", err);
             setError(err?.message || "Authentication failed. Please verify credentials.");
             setLoading(false);
         }
     };
+
+    // Render Role Selection screen for Google authenticated users missing database profile entries
+    if (needsRoleSelection) {
+        return (
+            <>
+                <Head>
+                    <title>Complete Profile - IdentyBridge</title>
+                </Head>
+
+                <main className="min-h-screen bg-gradient-to-br from-[#081B32] via-[#0B1F3A] to-[#123B66] flex flex-col justify-center py-12 px-6 lg:px-8 relative font-sans overflow-hidden">
+                    <div className="absolute top-1/4 left-1/4 h-[350px] w-[350px] rounded-full bg-[#14B8A6]/10 blur-[120px] pointer-events-none" />
+                    
+                    <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center z-10">
+                        <div className="flex items-center gap-3 justify-center mb-6">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-white shadow-lg ring-1 ring-white/20 backdrop-blur-md">
+                                <ShieldCheck size={23} className="text-[#14B8A6]" />
+                            </div>
+                            <div className="text-left">
+                                <p className="text-xl font-bold tracking-tight text-white leading-tight m-0">
+                                    IdentyBridge
+                                </p>
+                                <p className="text-[9px] uppercase tracking-[0.2em] font-semibold text-white/50 m-0">
+                                    Identity Response
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10">
+                        <div className="bg-white/95 backdrop-blur-md py-8 px-6 shadow-2xl border border-white/10 rounded-2xl sm:px-10">
+                            
+                            <div className="text-center mb-6">
+                                <h3 className="text-xl font-bold text-[#0B1F3A]">Choose Your Access Role</h3>
+                                <p className="text-xs text-[#526274] mt-1">
+                                    Please specify your details to complete setup.
+                                </p>
+                            </div>
+
+                            {error && (
+                                <div className="mb-5 flex items-start gap-3 p-4 bg-red-50 border border-red-200 text-[#C62828] rounded-md text-sm">
+                                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                                    <p className="text-xs leading-relaxed">{error}</p>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleRoleSubmission} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-[#526274] mb-1.5 uppercase tracking-wider">
+                                        Full Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        placeholder="e.g. Officer Jane Doe"
+                                        className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-[#526274] mb-1.5 uppercase tracking-wider">
+                                        Role Type
+                                    </label>
+                                    <select
+                                        value={role}
+                                        onChange={(e) => setRole(e.target.value)}
+                                        className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm bg-white"
+                                    >
+                                        <option value="Public User">Public User</option>
+                                        <option value="Police">Police</option>
+                                        <option value="Hospital">Hospital</option>
+                                    </select>
+                                </div>
+
+                                {(role === "Police" || role === "Hospital") && (
+                                    <div className="space-y-4 pt-2 border-t border-dashed border-[#E8EEF5]">
+                                        <div>
+                                            <label className="block text-xs font-bold text-[#0F766E] mb-1.5 uppercase tracking-wider">
+                                                {role === "Police" ? "Police Station / Agency Name" : "Hospital Name"}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={facilityName}
+                                                onChange={(e) => setFacilityName(e.target.value)}
+                                                placeholder={role === "Police" ? "e.g. Jubilee Hills Station" : "e.g. Gandhi Hospital"}
+                                                className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold text-[#0F766E] mb-1.5 uppercase tracking-wider">
+                                                Facility Location
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={facilityLocation}
+                                                onChange={(e) => setFacilityLocation(e.target.value)}
+                                                placeholder="e.g. Road No 36, Hyderabad"
+                                                className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md border border-[#0B1F3A] bg-[#123B66] text-white hover:bg-[#0B1F3A] text-sm font-bold shadow-sm transition disabled:bg-[#E8EEF5] disabled:text-[#7A8796]"
+                                >
+                                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Complete Setup"}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </main>
+            </>
+        );
+    }
 
     return (
         <>
