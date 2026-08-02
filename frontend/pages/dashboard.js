@@ -186,6 +186,7 @@ export default function Dashboard() {
       await supabase.auth.signOut();
       localStorage.removeItem("identybridge_role");
       localStorage.removeItem("identybridge_fullname");
+      localStorage.removeItem("identybridge_phone");
       localStorage.removeItem("identybridge_facility_name");
       localStorage.removeItem("identybridge_facility_location");
       window.location.href = "/";
@@ -517,6 +518,10 @@ export default function Dashboard() {
                         </th>
 
                         <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-text-muted">
+                          Phone Number
+                        </th>
+
+                        <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-text-muted">
                           Status
                         </th>
                       </tr>
@@ -554,6 +559,10 @@ export default function Dashboard() {
                             <span className="block truncate">
                               {getLocation(person)}
                             </span>
+                          </td>
+
+                          <td className="px-5 py-4 text-sm text-text-secondary">
+                            {person?.contactInfo || "—"}
                           </td>
 
                           <td className="px-5 py-4">

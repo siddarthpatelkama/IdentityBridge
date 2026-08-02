@@ -10,6 +10,7 @@ export default function SignIn() {
 
     // Form state
     const [fullName, setFullName] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("Public User");
@@ -36,6 +37,7 @@ export default function SignIn() {
                 supabase.auth.signOut().then(() => {
                     localStorage.removeItem("identybridge_role");
                     localStorage.removeItem("identybridge_fullname");
+                    localStorage.removeItem("identybridge_phone");
                     localStorage.removeItem("identybridge_facility_name");
                     localStorage.removeItem("identybridge_facility_location");
                 });
@@ -111,6 +113,7 @@ export default function SignIn() {
     const saveRoleMetadata = () => {
         localStorage.setItem("identybridge_role", role);
         localStorage.setItem("identybridge_fullname", fullName);
+        localStorage.setItem("identybridge_phone", phoneNumber);
         if (role === "Police" || role === "Hospital") {
             localStorage.setItem("identybridge_facility_name", facilityName);
             localStorage.setItem("identybridge_facility_location", facilityLocation);
@@ -172,6 +175,7 @@ export default function SignIn() {
             // Sync to local storage
             localStorage.setItem("identybridge_role", role);
             localStorage.setItem("identybridge_fullname", profileData.full_name);
+            localStorage.setItem("identybridge_phone", phoneNumber);
             if (role === "Police" || role === "Hospital") {
                 localStorage.setItem("identybridge_facility_name", facilityName);
                 localStorage.setItem("identybridge_facility_location", facilityLocation);
@@ -314,6 +318,19 @@ export default function SignIn() {
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
                                         placeholder="e.g. Officer Jane Doe"
+                                        className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-[#526274] mb-1.5 uppercase tracking-wider">
+                                        Phone Number
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={phoneNumber}
+                                        onChange={(e) => setPhoneNumber(e.target.value)}
+                                        placeholder="e.g. +91 98765 43210"
                                         className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm"
                                     />
                                 </div>
@@ -469,6 +486,25 @@ export default function SignIn() {
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
                                     placeholder="Officer Jane Doe"
+                                    className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm focus:border-[#1D5D8F] focus:ring-1 focus:ring-[#1D5D8F] disabled:bg-[#F4F7FA] disabled:text-[#7A8796]"
+                                />
+                            </div>
+
+                            <div>
+                                <label
+                                    htmlFor="phoneNumber"
+                                    className="block text-xs font-bold text-[#526274] mb-1.5 uppercase tracking-wider"
+                                >
+                                    Phone Number
+                                </label>
+                                <input
+                                    id="phoneNumber"
+                                    name="phoneNumber"
+                                    type="tel"
+                                    disabled={loading}
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
+                                    placeholder="e.g. +91 98765 43210"
                                     className="block w-full focus-visible:outline-[#0F766E] rounded-md border-[#E8EEF5] text-sm focus:border-[#1D5D8F] focus:ring-1 focus:ring-[#1D5D8F] disabled:bg-[#F4F7FA] disabled:text-[#7A8796]"
                                 />
                             </div>

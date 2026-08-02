@@ -14,6 +14,7 @@ export default function IntakeDashboard() {
             await supabase.auth.signOut();
             localStorage.removeItem("identybridge_role");
             localStorage.removeItem("identybridge_fullname");
+            localStorage.removeItem("identybridge_phone");
             localStorage.removeItem("identybridge_facility_name");
             localStorage.removeItem("identybridge_facility_location");
             window.location.href = "/";
@@ -27,6 +28,7 @@ export default function IntakeDashboard() {
         clothing: "",
         location_found: "",
         injuries: "",
+        phone_number: "",
     });
 
     const [submitting, setSubmitting] = useState(false);
@@ -102,6 +104,7 @@ export default function IntakeDashboard() {
         formDataPayload.append("clothing", formData.clothing);
         formDataPayload.append("location_found", formData.location_found);
         formDataPayload.append("injuries", formData.injuries);
+        formDataPayload.append("contact_info", formData.phone_number.trim());
         
         if (photoFile) {
             formDataPayload.append("photo", photoFile);
@@ -275,6 +278,25 @@ export default function IntakeDashboard() {
                                             <option value="Other">Other / Unspecified</option>
                                         </select>
                                     </div>
+                                </div>
+
+                                {/* PHONE NUMBER */}
+                                <div>
+                                    <label
+                                        htmlFor="phone_number"
+                                        className="block text-xs font-semibold text-text-secondary mb-1.5"
+                                    >
+                                        Phone Number
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        id="phone_number"
+                                        name="phone_number"
+                                        value={formData.phone_number}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g. +91 98765 43210"
+                                        className="focus-visible:outline-secondary-teal"
+                                    />
                                 </div>
 
                                 {/* LOCATION */}

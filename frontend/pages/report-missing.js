@@ -22,6 +22,7 @@ export default function ReportMissing() {
       await supabase.auth.signOut();
       localStorage.removeItem("identybridge_role");
       localStorage.removeItem("identybridge_fullname");
+      localStorage.removeItem("identybridge_phone");
       localStorage.removeItem("identybridge_facility_name");
       localStorage.removeItem("identybridge_facility_location");
       window.location.href = "/";
@@ -34,6 +35,7 @@ export default function ReportMissing() {
     clothing: "",
     location_missing: "",
     physical_marks: "",
+    phone_number: "",
   });
 
   const [status, setStatus] = useState("idle");
@@ -112,7 +114,8 @@ export default function ReportMissing() {
       formData.gender ||
       formData.clothing.trim() ||
       formData.location_missing.trim() ||
-      formData.physical_marks.trim();
+      formData.physical_marks.trim() ||
+      formData.phone_number.trim();
 
     if (!hasInformation) {
       setError(
@@ -130,6 +133,7 @@ export default function ReportMissing() {
     formDataPayload.append("clothing", formData.clothing.trim());
     formDataPayload.append("location_missing", formData.location_missing.trim());
     formDataPayload.append("physical_marks", formData.physical_marks.trim());
+    formDataPayload.append("contact_info", formData.phone_number.trim());
     if (photoFile) {
       formDataPayload.append("photo", photoFile);
     }
@@ -368,6 +372,26 @@ export default function ReportMissing() {
                     <option value="Unknown">Unknown</option>
                   </select>
                 </div>
+              </div>
+
+              {/* PHONE NUMBER */}
+              <div>
+                <label
+                  htmlFor="phone_number"
+                  className="mb-2 block text-sm font-semibold text-text-primary"
+                >
+                  Phone Number
+                </label>
+
+                <input
+                  id="phone_number"
+                  name="phone_number"
+                  type="tel"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  placeholder="e.g. +91 98765 43210"
+                />
               </div>
 
               {/* CLOTHING */}

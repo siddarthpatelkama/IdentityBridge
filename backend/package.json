@@ -4,6 +4,7 @@
   "description": "IdentyBridge - Backend API and AI matching engine for road accident victims and missing persons",
   "main": "server.js",
   "scripts": {
+    "dev": "node server.js",
     "start": "node server.js",
     "seed": "node scripts/seed.js"
   },

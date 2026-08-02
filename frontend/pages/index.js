@@ -48,6 +48,7 @@ export default function Home() {
       await supabase.auth.signOut();
       localStorage.removeItem("identybridge_role");
       localStorage.removeItem("identybridge_fullname");
+      localStorage.removeItem("identybridge_phone");
       localStorage.removeItem("identybridge_facility_name");
       localStorage.removeItem("identybridge_facility_location");
       window.location.reload();
