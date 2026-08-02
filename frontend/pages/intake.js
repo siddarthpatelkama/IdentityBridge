@@ -5,6 +5,7 @@ import { Shield, Sparkles, FileText, Search, ShieldAlert, CheckCircle2, Info, Lo
 import VoiceRecorder from "@/components/VoiceRecorder";
 import MatchCard from "@/components/MatchCard";
 import { supabase } from "@/lib/supabaseClient";
+import { getApiUrl } from "@/utils/api";
 
 
 export default function IntakeDashboard() {
@@ -107,7 +108,7 @@ export default function IntakeDashboard() {
         }
 
         try {
-            const response = await fetch("/api/intake/text", {
+            const response = await fetch(getApiUrl("/api/intake/text"), {
                 method: "POST",
                 body: formDataPayload,
                 // Content-Type is omitted so the browser sets the multipart boundary automatically

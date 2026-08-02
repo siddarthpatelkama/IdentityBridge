@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { getApiUrl } from "@/utils/api";
 
 
 const EMPTY_DATA = {
@@ -201,7 +202,7 @@ export default function Dashboard() {
     setError("");
 
     try {
-      const response = await fetch("/api/dashboard", {
+      const response = await fetch(getApiUrl("/api/dashboard"), {
         method: "GET",
         headers: {
           Accept: "application/json",

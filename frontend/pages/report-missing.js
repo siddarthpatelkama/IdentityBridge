@@ -13,6 +13,7 @@ import {
 
 import MatchCard from "../components/MatchCard";
 import { supabase } from "@/lib/supabaseClient";
+import { getApiUrl } from "@/utils/api";
 
 
 export default function ReportMissing() {
@@ -134,7 +135,7 @@ export default function ReportMissing() {
     }
 
     try {
-      const response = await fetch("/api/intake/text", {
+      const response = await fetch(getApiUrl("/api/intake/text"), {
         method: "POST",
         body: formDataPayload,
         // Content-Type is omitted so the browser sets the multipart boundary automatically
@@ -184,7 +185,7 @@ export default function ReportMissing() {
     setError("");
 
     try {
-      const response = await fetch("/api/generate-poster", {
+      const response = await fetch(getApiUrl("/api/generate-poster"), {
         method: "GET",
       });
 

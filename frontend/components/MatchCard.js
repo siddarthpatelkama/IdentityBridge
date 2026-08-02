@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { CheckCircle2, ShieldAlert, Loader2, ArrowRight } from "lucide-react";
+import { getApiUrl } from "@/utils/api";
 
 export default function MatchCard({ match = {}, onVerified }) {
     const [status, setStatus] = useState("idle"); // 'idle' | 'verifying' | 'verified' | 'error'
@@ -58,7 +59,7 @@ export default function MatchCard({ match = {}, onVerified }) {
         };
 
         try {
-            const response = await fetch("/api/match/verify", {
+            const response = await fetch(getApiUrl("/api/match/verify"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
