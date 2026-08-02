@@ -1,0 +1,154 @@
+[
+  {
+    "match_id": "M001",
+    "family_report_id": "F001",
+    "police_report_id": "P001",
+    "hospital_record_id": "H001",
+    "confidence_score": 97.0,
+    "status": "High Confidence Match",
+    "reason": [
+      "Similar age",
+      "Similar clothing",
+      "Nearby accident location",
+      "Matching timeline",
+      "Similar height",
+      "Matching physical marks"
+    ]
+  },
+  {
+    "match_id": "M002",
+    "family_report_id": "F002",
+    "police_report_id": "P002",
+    "hospital_record_id": "H002",
+    "confidence_score": 95.0,
+    "status": "High Confidence Match",
+    "reason": [
+      "Similar age",
+      "Similar clothing",
+      "Nearby accident location",
+      "Matching timeline",
+      "Similar height",
+      "Matching physical marks"
+    ]
+  },
+  {
+    "match_id": "M003",
+    "family_report_id": "F003",
+    "police_report_id": "P003",
+    "hospital_record_id": "H003",
+    "confidence_score": 96.0,
+    "status": "High Confidence Match",
+    "reason": [
+      "Similar age",
+      "Similar clothing",
+      "Nearby accident location",
+      "Matching timeline",
+      "Similar height",
+      "Matching physical marks",
+      "Similar injuries"
+    ]
+  },
+  {
+    "match_id": "M004",
+    "family_report_id": "F004",
+    "police_report_id": "P004",
+    "hospital_record_id": "H004",
+    "confidence_score": 93.0,
+    "status": "High Confidence Match",
+    "reason": [
+      "Similar age",
+      "Similar clothing",
+      "Nearby accident location",
+      "Matching timeline",
+      "Similar height",
+      "Matching physical marks"
+    ]
+  },
+  {
+    "match_id": "M005",
+    "family_report_id": "F005",
+    "police_report_id": "P005",
+    "hospital_record_id": "H005",
+    "confidence_score": 94.0,
+    "status": "High Confidence Match",
+    "reason": [
+      "Similar age",
+      "Similar clothing",
+      "Nearby accident location",
+      "Matching timeline",
+      "Similar height",
+      "Matching physical marks",
+      "Similar injuries"
+    ]
+  },
+  {
+    "match_id": "M006",
+    "family_report_id": "F006",
+    "police_report_id": "P006",
+    "hospital_record_id": "H006",
+    "confidence_score": 91.0,
+    "status": "High Confidence Match",
+    "reason": [
+      "Similar age",
+      "Similar clothing",
+      "Nearby accident location",
+      "Matching timeline",
+      "Similar height"
+    ]
+  },
+  {
+    "match_id": "M007",
+    "family_report_id": "F007",
+    "police_report_id": "P007",
+    "hospital_record_id": "H007",
+    "confidence_score": 92.0,
+    "status": "High Confidence Match",
+    "reason": [
+      "Similar age",
+      "Similar clothing",
+      "Nearby accident location",
+      "Matching timeline",
+      "Similar height",
+      "Matching physical marks"
+    ]
+  },
+  {
+    "match_id": "M008",
+    "family_report_id": "F008",
+    "police_report_id": "P008",
+    "hospital_record_id": "H008",
+    "confidence_score": 82.0,
+    "status": "Medium Confidence Match",
+    "reason": [
+      "Similar clothing",
+      "Nearby accident location",
+      "Matching timeline",
+      "Similar height"
+    ]
+  },
+  {
+    "match_id": "M009",
+    "family_report_id": "F009",
+    "police_report_id": "P009",
+    "hospital_record_id": "H009",
+    "confidence_score": 75.0,
+    "status": "Medium Confidence Match",
+    "reason": [
+      "Similar clothing",
+      "Nearby accident location",
+      "Similar height",
+      "Matching physical marks"
+    ]
+  },
+  {
+    "match_id": "M010",
+    "family_report_id": "F010",
+    "police_report_id": "P010",
+    "hospital_record_id": "H010",
+    "confidence_score": 35.0,
+    "status": "No Match",
+    "reason": [
+      "Similar gender"
+    ]
+  }
+]
