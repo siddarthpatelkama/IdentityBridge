@@ -117,3 +117,11 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 
 -- Disable RLS on user_profiles for hackathon access convenience
 ALTER TABLE user_profiles DISABLE ROW LEVEL SECURITY;
+
+-- Fallback public bypass policy in case RLS remains active
+DROP POLICY IF EXISTS "Public Access Profiles" ON user_profiles;
+CREATE POLICY "Public Access Profiles" ON user_profiles 
+  FOR ALL 
+  TO public 
+  USING (true) 
+  WITH CHECK (true);
