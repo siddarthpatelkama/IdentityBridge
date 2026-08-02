@@ -271,7 +271,15 @@ router.post('/intake/voice', intakeUpload, async (req, res) => {
     });
   } catch (error) {
     console.error('Voice intake error:', error);
-    return res.status(500).json({ error: error.message || 'Internal Server Error' });
+    return res.status(500).json({
+      error: error.message || 'Internal Server Error',
+      stack: error.stack,
+      response: error.response ? {
+        status: error.response.status,
+        url: error.response.config ? error.response.config.url : null,
+        data: error.response.data
+      } : null
+    });
   }
 });
 
@@ -323,7 +331,15 @@ router.post('/intake/text', intakeUpload, async (req, res) => {
     });
   } catch (error) {
     console.error('Text intake error:', error);
-    return res.status(500).json({ error: error.message || 'Internal Server Error' });
+    return res.status(500).json({
+      error: error.message || 'Internal Server Error',
+      stack: error.stack,
+      response: error.response ? {
+        status: error.response.status,
+        url: error.response.config ? error.response.config.url : null,
+        data: error.response.data
+      } : null
+    });
   }
 });
 
