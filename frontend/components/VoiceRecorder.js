@@ -107,11 +107,10 @@ export default function VoiceRecorder({ onResult }) {
         setError(null);
 
         const formData = new FormData();
-        // Use recorded blob directly as requested
         formData.append("audio", audioBlob, "intake_recording.webm");
 
         try {
-            const response = await fetch("/api/intake/voice", {
+            const response = await fetch("/api/intake/transcribe", {
                 method: "POST",
                 body: formData,
                 // Content-Type is NOT set manually so browser handles multipart boundary

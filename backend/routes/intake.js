@@ -212,6 +212,37 @@ async function processIntake({ type, hospital_name, reporter_type, contact_info,
 }
 
 /**
+ * POST /api/intake/transcribe
+ * Only transcribes and extracts structured data from audio without inserting into database.
+ */
+router.post('/intake/transcribe', intakeUpload, async (req, res) => {
+  try {
+    const audioFile = req.files && req.files['audio'] ? req.files['audio'][0] : null;
+    if (!audioFile) {
+      return res.status(400).json({ error: "No audio file provided." });
+    }
+
+    console.log('Audio file received for transcription. Sending to Whisper...');
+    const rawText = await transcribeAudio(audioFile.buffer, audioFile.mimetype);
+    console.log(`Whisper Transcription: "${rawText}"`);
+
+    console.log('Extracting structured attributes with LLM...');
+    // Extract fields. Pass true for isPatient (default since it's intake triaging)
+    const extractedData = await extractStructuredData(rawText, true);
+    console.log('Extracted Data:', extractedData);
+
+    return res.status(200).json({
+      success: true,
+      transcription: rawText,
+      extracted_data: extractedData
+    });
+  } catch (error) {
+    console.error('Audio transcription error:', error);
+    return res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
+});
+
+/**
  * POST /api/intake/voice
  * Handles audio upload intake.
  */
