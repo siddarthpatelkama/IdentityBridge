@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Activity,
   AlertCircle,
@@ -276,7 +277,7 @@ export default function Dashboard() {
       <header className="border-b border-primary-inst bg-primary-navy text-white">
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition">
               <div className="flex h-11 w-11 items-center justify-center rounded-md bg-white/10">
                 <ShieldCheck
                   className="h-6 w-6 text-secondary-soft-teal"
@@ -285,7 +286,7 @@ export default function Dashboard() {
               </div>
 
               <div>
-                <p className="text-xl font-bold tracking-tight">
+                <p className="text-xl font-bold tracking-tight text-white">
                   IdentyBridge
                 </p>
 
@@ -293,7 +294,7 @@ export default function Dashboard() {
                   System Overview Dashboard
                 </p>
               </div>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-3">
               <div className="hidden items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white/80 sm:flex">

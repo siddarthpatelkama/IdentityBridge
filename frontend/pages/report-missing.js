@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
   ArrowRight,
@@ -224,7 +225,7 @@ export default function ReportMissing() {
       {/* HEADER */}
       <header className="border-b border-bg-subtle bg-primary-navy text-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition">
             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white/10">
               <ShieldCheck
                 className="h-6 w-6 text-secondary-teal"
@@ -241,7 +242,7 @@ export default function ReportMissing() {
                 Public Portal
               </p>
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-2 text-xs font-medium text-white/70">
             <span className="hidden items-center gap-2 sm:flex mr-2">
