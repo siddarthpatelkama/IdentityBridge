@@ -106,7 +106,7 @@ $$;
 
 -- 7. Create the user_profiles table to store user roles and metadata
 CREATE TABLE IF NOT EXISTS user_profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY,
   email TEXT NOT NULL,
   full_name TEXT,
   role TEXT CHECK (role IN ('Public User', 'Police', 'Hospital')) DEFAULT 'Public User' NOT NULL,
