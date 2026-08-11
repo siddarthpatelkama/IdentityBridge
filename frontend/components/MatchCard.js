@@ -1,9 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { CheckCircle2, ShieldAlert, Loader2, ArrowRight } from "lucide-react";
+import { getApiUrl } from "@/utils/api";
+
+
 
 export default function MatchCard({ match = {}, onVerified }) {
-    const [status, setStatus] = useState("idle"); // 'idle' | 'verifying' | 'verified' | 'error'
+    const [status, setStatus] = useState("idle"); // 'idle' | 'countdown' | 'verifying' | 'verified' | 'error'
     const [error, setError] = useState(null);
+    const [countdown, setCountdown] = useState(3);
+    const timerRef = useRef(null);
+
+    // Cleanup timer on unmount
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, []);
 
     // Safe confidence extraction
     const getConfidenceText = (score) => {
@@ -14,38 +26,56 @@ export default function MatchCard({ match = {}, onVerified }) {
         if (isNaN(num)) {
             return "N/A";
         }
-        if (num > 0 && num <= 1) {
-            return `${Math.round(num * 100)}%`;
-        }
         return `${Math.round(num)}%`;
     };
 
-    const scoreText = getConfidenceText(match.confidence ?? match.similarity ?? match.score);
-
-    // Custom styling depending on the confidence level
     const getConfidenceColorClass = (score) => {
-        if (score === undefined || score === null) return "text-text-secondary border-bg-subtle bg-bg-main";
+        if (score === undefined || score === null || score === "") {
+            return "text-text-muted border-border-light bg-bg-subtle/25";
+        }
         const num = Number(score);
-        if (isNaN(num)) return "text-text-secondary border-bg-subtle bg-bg-main";
-
-        const percentage = num <= 1 ? num * 100 : num;
-
-        if (percentage >= 85) {
-            // High Match - Alert state
-            return "text-alert-emergency border-red-100 bg-red-50";
-        } else if (percentage >= 60) {
-            // Moderate Match - Warning Amber state
-            return "text-alert-warning border-amber-100 bg-amber-50";
+        if (isNaN(num)) {
+            return "text-text-muted border-border-light bg-bg-subtle/25";
+        }
+        if (num >= 85) {
+            return "text-alert-success border-teal-200 bg-teal-50/20"; // High Match
+        }
+        if (num >= 65) {
+            return "text-alert-warning border-amber-200 bg-amber-50/20"; // Medium Match
         }
         // Low Match / Information
         return "text-primary-trust border-blue-50 bg-blue-50/20";
     };
 
     const confidenceColorStyle = getConfidenceColorClass(match.confidence ?? match.similarity ?? match.score);
+    const scoreText = getConfidenceText(match.confidence ?? match.similarity ?? match.score);
 
-    const verifyMatch = async () => {
-        if (status === "verifying") return;
+    const startVerificationTimer = () => {
+        setStatus("countdown");
+        setCountdown(3);
+        setError(null);
+        
+        timerRef.current = setInterval(() => {
+            setCountdown((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    executeVerification();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
 
+    const cancelVerification = () => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+        setStatus("idle");
+        setCountdown(3);
+    };
+
+    const executeVerification = async () => {
         setStatus("verifying");
         setError(null);
 
@@ -58,7 +88,7 @@ export default function MatchCard({ match = {}, onVerified }) {
         };
 
         try {
-            const response = await fetch("/api/match/verify", {
+            const response = await fetch(getApiUrl("/api/match/verify"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -102,10 +132,22 @@ export default function MatchCard({ match = {}, onVerified }) {
 
     return (
         <div
-            className="card-secure p-6 max-w-md w-full bg-white border border-bg-subtle shadow-card text-left transition-all"
+            className="card-secure p-6 w-full bg-white border border-bg-subtle shadow-card text-left transition-all flex flex-col justify-between"
             role="region"
             aria-label={`Match result ${displayId ? `ID ${displayId}` : ""}`}
         >
+            {/* Case Photograph */}
+            {match.image_url && (
+                <div className="relative w-full h-48 mb-4 overflow-hidden rounded-md bg-bg-subtle">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={match.image_url}
+                        alt="Case photograph"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            )}
+
             {/* Header with Case ID and Confidence Score */}
             <div className="flex justify-between items-start gap-4 border-b border-bg-subtle pb-4 mb-4">
                 <div>
@@ -115,6 +157,7 @@ export default function MatchCard({ match = {}, onVerified }) {
                     <h4 className="text-sm font-bold text-primary-navy mt-0.5">
                         {displayId ? `ID: ${displayId}` : "Reference Case Details"}
                     </h4>
+
                 </div>
                 <div
                     className={`flex flex-col items-center border rounded-md px-3 py-1.5 ${confidenceColorStyle}`}
@@ -149,6 +192,35 @@ export default function MatchCard({ match = {}, onVerified }) {
                 )}
             </div>
 
+            {/* Contact Details (Locked / Unlocked) */}
+            {status === "verified" ? (
+                <div className="mt-2 mb-4 p-4 rounded-md bg-teal-50/70 border border-teal-200 text-left">
+                    <h5 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        📞 Verified Contact Details
+                    </h5>
+                    <div className="space-y-1.5 text-sm">
+                        <p className="text-text-primary">
+                            <span className="font-semibold text-text-secondary">Reporter Name:</span> {match.reporterName || "Amit Kumar"}
+                        </p>
+                        <p className="text-text-primary">
+                            <span className="font-semibold text-text-secondary">Contact Phone:</span>{" "}
+                            <a href={`tel:${match.contactInfo}`} className="text-teal-600 font-bold hover:underline">
+                                {match.contactInfo || "+91-98765-43210"}
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="mt-2 mb-4 p-4 rounded-md bg-bg-subtle/50 border border-border-light text-left opacity-75">
+                    <h5 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        🔒 Contact Details (Locked)
+                    </h5>
+                    <p className="text-xs text-text-muted">
+                        Verify this match to unlock phone numbers and reporter name.
+                    </p>
+                </div>
+            )}
+
             {/* Status & Error Actions */}
             <div className="space-y-4">
                 {status === "error" && (
@@ -171,9 +243,22 @@ export default function MatchCard({ match = {}, onVerified }) {
                         <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
                         Match Verified
                     </div>
+                ) : status === "countdown" ? (
+                    <div className="w-full flex items-center justify-between bg-amber-50 border border-amber-200 text-amber-800 text-sm py-2.5 px-4 rounded-sm font-semibold">
+                        <span className="flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
+                            Verifying in {countdown}s...
+                        </span>
+                        <button
+                            onClick={cancelVerification}
+                            className="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded-sm cursor-pointer transition font-bold"
+                        >
+                            Undo
+                        </button>
+                    </div>
                 ) : (
                     <button
-                        onClick={verifyMatch}
+                        onClick={startVerificationTimer}
                         disabled={status === "verifying"}
                         className={`w-full py-2.5 px-4 rounded-sm font-semibold text-sm transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-teal ${status === "verifying"
                                 ? "bg-bg-subtle text-text-muted border border-bg-subtle cursor-not-allowed inline-flex items-center justify-center gap-2"

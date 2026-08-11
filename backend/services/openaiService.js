@@ -1,50 +1,68 @@
-const { OpenAI, toFile } = require('openai');
+const axios = require('axios');
 require('dotenv').config();
 
-const openaiKey = process.env.OPENAI_API_KEY;
+const geminiKey = process.env.GEMINI_API_KEY;
 
-if (!openaiKey) {
-  console.warn('Warning: OPENAI_API_KEY environment variable is missing.');
+function isKeyValid(key) {
+  return typeof key === 'string' && key.trim().startsWith('AIzaSy');
 }
 
-const openai = new OpenAI({
-  apiKey: openaiKey || 'placeholder'
-});
+if (!isKeyValid(geminiKey)) {
+  console.warn('Warning: GEMINI_API_KEY environment variable is missing or invalid (must start with AIzaSy).');
+}
 
 /**
- * Transcribe an audio file buffer to text using Whisper API
+ * Transcribe an audio file buffer to text using Gemini 1.5 Flash Audio Model
  * @param {Buffer} fileBuffer - The audio file buffer
- * @param {string} mimeType - The mime type of the audio (e.g. 'audio/mpeg')
+ * @param {string} mimeType - The mime type of the audio (e.g. 'audio/webm')
  * @returns {Promise<string>} The transcribed text
  */
-async function transcribeAudio(fileBuffer, mimeType = 'audio/mpeg') {
-  if (!process.env.OPENAI_API_KEY) {
-    console.log('OpenAI API key missing. Returning mock transcription.');
+async function transcribeAudio(fileBuffer, mimeType = 'audio/webm') {
+  if (!isKeyValid(process.env.GEMINI_API_KEY)) {
+    console.log('Gemini API key missing or invalid. Returning mock transcription.');
     return 'Male, roughly 25 years old, wearing a red shirt and black pants, found unconscious near Secunderabad railway station with a head injury.';
   }
 
   try {
-    const file = await toFile(fileBuffer, `audio.${mimeType.split('/')[1] || 'mp3'}`, { type: mimeType });
-    const response = await openai.audio.transcriptions.create({
-      file: file,
-      model: 'whisper-1',
-    });
-    return response.text;
+    const base64Data = fileBuffer.toString('base64');
+    console.log(`Sending base64 audio (${mimeType}) to Gemini API...`);
+    
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [{
+          parts: [
+            {
+              inlineData: {
+                mimeType: mimeType,
+                data: base64Data
+              }
+            },
+            {
+              text: "Please transcribe this audio recording exactly. Do not add any introduction, explanations, or metadata, just output the spoken text."
+            }
+          ]
+        }]
+      }
+    );
+
+    const text = response.data.candidates[0].content.parts[0].text;
+    return text.trim();
   } catch (error) {
-    console.error('Error in transcribeAudio:', error);
+    console.error('Error in transcribeAudio (Gemini):', error.response ? error.response.data : error.message);
     throw error;
   }
 }
 
 /**
- * Extract structured information from raw text using gpt-4o-mini
+ * Extract structured information from raw text using gemini-1.5-flash
  * @param {string} rawText - The transcribed text or description
  * @param {boolean} isPatient - True if unidentified patient, False if missing report
  * @returns {Promise<object>} The extracted JSON payload
  */
 async function extractStructuredData(rawText, isPatient = true) {
-  if (!process.env.OPENAI_API_KEY) {
-    console.log('OpenAI API key missing. Returning mock structured data.');
+  if (!isKeyValid(process.env.GEMINI_API_KEY)) {
+    console.log('Gemini API key missing or invalid. Returning mock structured data.');
     if (isPatient) {
       return {
         age_estimate: 25,
@@ -69,31 +87,29 @@ async function extractStructuredData(rawText, isPatient = true) {
     : `{ "age_approx": number or null, "gender": "male" | "female" | "unknown", "clothing": "description", "location_missing": "description", "physical_marks": "description" }`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert medical and police intake assistant.
-Analyze the text provided and extract the descriptive variables.
-You MUST output ONLY a valid JSON object matching this schema:
-${schemaDescription}
-Do not write any markdown code block fences (like \`\`\`json), explanations, or text surrounding the JSON.`
-        },
-        {
-          role: 'user',
-          content: rawText
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [{
+          parts: [{
+            text: `Analyze the text provided and extract the descriptive variables.
+            You MUST output ONLY a valid JSON object matching this schema:
+            ${schemaDescription}
+            
+            Input Text:
+            "${rawText}"`
+          }]
+        }],
+        generationConfig: {
+          responseMimeType: "application/json"
         }
-      ],
-      temperature: 0.1
-    });
+      }
+    );
 
-    const content = response.choices[0].message.content.trim();
-    // In case LLM returns JSON inside markdown fences despite system instructions, clean it up:
-    const cleanJson = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
-    return JSON.parse(cleanJson);
+    const text = response.data.candidates[0].content.parts[0].text;
+    return JSON.parse(text.trim());
   } catch (error) {
-    console.error('Error in extractStructuredData:', error);
+    console.error('Error in extractStructuredData (Gemini):', error.response ? error.response.data : error.message);
     throw error;
   }
 }
@@ -108,54 +124,54 @@ function getSeededRandom(seedString) {
     hash = seedString.charCodeAt(i) + ((hash << 5) - hash);
   }
   return function() {
-    // Simple LCG (Linear Congruential Generator)
     hash = (hash * 1664525 + 1013904223) % 4294967296;
     return (hash / 4294967296);
   };
 }
 
 /**
- * Generate 1536-dimensional vector embedding for a text string using text-embedding-3-small
+ * Generate 1536-dimensional vector embedding using Gemini text-embedding-004.
+ * Duplicates the 768 output dimensions to match the 1536 schema size.
  * @param {string} text - The input text (concatenated details)
  * @returns {Promise<number[]>} The 1536-dimension float array
  */
 async function generateEmbedding(text) {
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your-openai-api-key') {
-    console.log(`[EMBEDDING SIMULATION] Generating deterministic vector for: "${text.substring(0, 40)}..."`);
+  if (!isKeyValid(process.env.GEMINI_API_KEY)) {
+    console.log(`[EMBEDDING SIMULATION] Keyword-based semantic simulation for: "${text.substring(0, 50)}..."`);
     
     const clean = text.toLowerCase();
-    let seed = clean;
-    let noiseSeed = null;
-    let noiseWeight = 0.0;
+    
+    // Define keyword dictionary for semantic simulation
+    const keywords = [
+      'male', 'female', 'boy', 'girl',
+      'kukatpally', 'begumpet', 'secunderabad', 'dilsukhnagar', 'miyapur', 'panjagutta', 'somajiguda', 'osmania', 'gandhi', 'kims', 'shaikpet',
+      'blue', 'green', 'yellow', 'black', 'grey', 'gray', 'white', 'orange', 'red', 'brown',
+      'shirt', 't-shirt', 'tshirt', 'saree', 'jeans', 'pants', 'shorts', 'kurta', 'leggings', 'dress', 'top',
+      'mole', 'scar', 'tattoo', 'bangle', 'fracture', 'trauma', 'cut', 'bruise'
+    ];
 
-    // Detect our demo matching pairs to align their vectors close to each other
-    if (clean.includes('secunderabad')) {
-      seed = 'secunderabad_demo_vector';
-      if (clean.includes('unconscious') || clean.includes('patient') || clean.includes('bloodstained') || clean.includes('estimate')) {
-        // Patient side of the Secunderabad pair
-        noiseSeed = 'secunderabad_patient_noise';
-        noiseWeight = 0.12; // Yields ~88% similarity
-      }
-    } else if (clean.includes('jubilee')) {
-      seed = 'jubilee_hills_demo_vector';
-      if (clean.includes('unconscious') || clean.includes('patient') || clean.includes('disoriented') || clean.includes('estimate')) {
-        // Patient side of the Jubilee Hills pair
-        noiseSeed = 'jubilee_patient_noise';
-        noiseWeight = 0.15; // Yields ~85% similarity
-      }
-    }
+    const vec = new Array(1536).fill(0);
+    let matchedCount = 0;
 
-    const rand = getSeededRandom(seed);
-    const vec = new Array(1536).fill(0).map(() => rand() - 0.5);
-
-    if (noiseSeed) {
-      const randNoise = getSeededRandom(noiseSeed);
-      for (let i = 0; i < 1536; i++) {
-        vec[i] = vec[i] * (1 - noiseWeight) + (randNoise() - 0.5) * noiseWeight;
+    // Sum up deterministic vectors for each matched keyword
+    for (const kw of keywords) {
+      if (clean.includes(kw)) {
+        matchedCount++;
+        const rand = getSeededRandom(`keyword_${kw}`);
+        for (let i = 0; i < 1536; i++) {
+          vec[i] += (rand() - 0.5);
+        }
       }
     }
 
-    // Normalize to unit vector so cosine similarity equals the dot product
+    // Add a unique text signature (weight 0.25) so unique text has its own signature
+    const randSig = getSeededRandom(clean);
+    const sigWeight = matchedCount > 0 ? 0.25 : 1.0;
+    for (let i = 0; i < 1536; i++) {
+      vec[i] = vec[i] * (1 - sigWeight) + (randSig() - 0.5) * sigWeight;
+    }
+
+    // Normalize to unit length for Cosine Similarity
     let len = 0;
     for (let i = 0; i < 1536; i++) len += vec[i] * vec[i];
     len = Math.sqrt(len);
@@ -165,14 +181,25 @@ async function generateEmbedding(text) {
   }
 
   try {
-    const response = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: text,
-      encoding_format: 'float'
-    });
-    return response.data[0].embedding;
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        model: "models/text-embedding-004",
+        content: {
+          parts: [{
+            text: text
+          }]
+        }
+      }
+    );
+
+    const geminiVec = response.data.embedding.values; // Length 768
+    
+    // Duplicate 768 elements to reach the 1536 schema dimensions required by pgvector
+    const duplicatedVec = [...geminiVec, ...geminiVec];
+    return duplicatedVec;
   } catch (error) {
-    console.error('Error in generateEmbedding:', error);
+    console.error('Error in generateEmbedding (Gemini):', error.response ? error.response.data : error.message);
     throw error;
   }
 }
